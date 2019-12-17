@@ -15,9 +15,7 @@ protocol ImagePickerDelegate: AnyObject {
 }
 
 open class YPPickerVC: YPBottomPager, YPBottomPagerDelegate {
-    
-    ///overrides startOnScreen and screens settings
-    var onlyScreen: YPPickerScreen?
+
     
     let albumsManager = YPAlbumsManager()
     var shouldHideStatusBar = false
@@ -46,13 +44,15 @@ open class YPPickerVC: YPBottomPager, YPBottomPagerDelegate {
     
     var capturedImage: UIImage?
     
-    init(onlyScreen: YPPickerScreen?) {
-        self.onlyScreen = onlyScreen
+    var defaultMode: YPPickerScreen?
+    
+    init(defaultMode: YPPickerScreen?) {
+        self.defaultMode = defaultMode
         super.init(nibName: nil, bundle: nil)
     }
     
     public required init?(coder: NSCoder) {
-        fatalError("Not implemented")
+        fatalError("not implemented")
     }
     
     open override func viewDidLoad() {
@@ -61,39 +61,6 @@ open class YPPickerVC: YPBottomPager, YPBottomPagerDelegate {
         view.backgroundColor = YPConfig.colors.safeAreaBackgroundColor
         
         delegate = self
-        
-        var cvcs = [UIViewController]()
-        if let onlyScreen = onlyScreen {
-            switch onlyScreen {
-            case .library:
-                libraryVC = YPLibraryVC()
-                libraryVC?.delegate = self
-                cvcs.append(libraryVC!)
-            case .photo:
-                cameraVC = YPCameraVC()
-                cameraVC?.didCapturePhoto = { [weak self] img in
-                    self?.didSelectItems?([YPMediaItem.photo(p: YPMediaPhoto(image: img,
-                                                                            fromCamera: true))])
-                }
-                cvcs.append(cameraVC!)
-            case .video:
-                videoVC = YPVideoCaptureVC()
-                videoVC?.didCaptureVideo = { [weak self] videoURL in
-                    self?.didSelectItems?([YPMediaItem
-                        .video(v: YPMediaVideo(thumbnail: thumbnailFromVideoPath(videoURL),
-                                               videoURL: videoURL,
-                                               fromCamera: true))])
-                }
-                cvcs.append(videoVC!)
-            }
-            controllers = cvcs
-            
-            startOnPage(0)
-            
-            YPHelper.changeBackButtonIcon(self)
-            YPHelper.changeBackButtonTitle(self)
-            return
-        }
         
         // Force Library only when using `minNumberOfItems`.
         if YPConfig.library.minNumberOfItems > 1 {
@@ -149,6 +116,18 @@ open class YPPickerVC: YPBottomPager, YPBottomPagerDelegate {
         // Select good mode
         if YPConfig.screens.contains(YPConfig.startOnScreen) {
             switch YPConfig.startOnScreen {
+            case .library:
+                mode = .library
+            case .photo:
+                mode = .camera
+            case .video:
+                mode = .video
+            }
+        }
+        
+        if let defaultMode = defaultMode {
+            print("found default mode - YPImagePicker")
+            switch defaultMode {
             case .library:
                 mode = .library
             case .photo:
@@ -219,6 +198,17 @@ open class YPPickerVC: YPBottomPager, YPBottomPagerDelegate {
     
         updateUI()
     }
+    
+//    public func updateMode(for screen: YPPickerScreen) {
+//        switch screen {
+//        case .library:
+//            
+//        case .photo:
+//        
+//        case .video:
+//            
+//        }
+//    }
     
     func stopCurrentCamera() {
         switch mode {

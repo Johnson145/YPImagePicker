@@ -48,7 +48,15 @@ open class YPImagePicker: UINavigationController {
     /// Get a YPImagePicker with the specified configuration.
     public required init(configuration: YPImagePickerConfiguration) {
         YPImagePickerConfiguration.shared = configuration
-        picker = YPPickerVC()
+        picker = YPPickerVC(defaultMode: nil)
+        super.init(nibName: nil, bundle: nil)
+        modalPresentationStyle = .fullScreen // Force .fullScreen as iOS 13 now shows modals as cards by default.
+        picker.imagePickerDelegate = self
+    }
+    
+    public init(defaultMode: YPPickerScreen, configuration: YPImagePickerConfiguration) {
+        YPImagePickerConfiguration.shared = configuration
+        picker = YPPickerVC(defaultMode: defaultMode)
         super.init(nibName: nil, bundle: nil)
         modalPresentationStyle = .fullScreen // Force .fullScreen as iOS 13 now shows modals as cards by default.
         picker.imagePickerDelegate = self
