@@ -46,7 +46,7 @@ open class YPPickerVC: YPBottomPager, YPBottomPagerDelegate {
     
     var capturedImage: UIImage?
     
-    init(onlyScreen: YPPickerScreen) {
+    init(onlyScreen: YPPickerScreen?) {
         self.onlyScreen = onlyScreen
         super.init(nibName: nil, bundle: nil)
     }
