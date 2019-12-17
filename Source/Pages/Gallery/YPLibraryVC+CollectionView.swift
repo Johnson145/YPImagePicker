@@ -9,10 +9,10 @@
 import UIKit
 
 extension YPLibraryVC {
-    var isLimitExceeded: Bool { return selection.count >= YPConfig.library.maxNumberOfItems }
+    var isLimitExceeded: Bool { return selection.count >= self.configuration.library.maxNumberOfItems }
     
     func setupCollectionView() {
-        v.collectionView.backgroundColor = YPConfig.colors.libraryScreenBackgroundColor
+        v.collectionView.backgroundColor = self.configuration.colors.libraryScreenBackgroundColor
         v.collectionView.dataSource = self
         v.collectionView.delegate = self
         v.collectionView.register(YPLibraryViewCell.self, forCellWithReuseIdentifier: "YPLibraryViewCell")
@@ -25,7 +25,7 @@ extension YPLibraryVC {
     
     /// When tapping on the cell with long press, clear all previously selected cells.
     @objc func handleLongPress(longPressGR: UILongPressGestureRecognizer) {
-        if multipleSelectionEnabled || isProcessing || YPConfig.library.maxNumberOfItems <= 1 {
+        if multipleSelectionEnabled || isProcessing || self.configuration.library.maxNumberOfItems <= 1 {
             return
         }
         
@@ -120,7 +120,7 @@ extension YPLibraryVC: UICollectionViewDelegate {
         }
         cell.representedAssetIdentifier = asset.localIdentifier
         cell.multipleSelectionIndicator.selectionColor =
-            YPConfig.colors.multipleItemsSelectedCircleColor ?? YPConfig.colors.tintColor
+            self.configuration.colors.multipleItemsSelectedCircleColor ?? self.configuration.colors.tintColor
         mediaManager.imageManager?.requestImage(for: asset,
                                    targetSize: v.cellSize(),
                                    contentMode: .aspectFill,
@@ -212,16 +212,16 @@ extension YPLibraryVC: UICollectionViewDelegateFlowLayout {
     public func collectionView(_ collectionView: UICollectionView,
                                layout collectionViewLayout: UICollectionViewLayout,
                                sizeForItemAt indexPath: IndexPath) -> CGSize {
-        let margins = YPConfig.library.spacingBetweenItems * CGFloat(YPConfig.library.numberOfItemsInRow - 1)
-        let width = (collectionView.frame.width - margins) / CGFloat(YPConfig.library.numberOfItemsInRow)
+        let margins = self.configuration.library.spacingBetweenItems * CGFloat(self.configuration.library.numberOfItemsInRow - 1)
+        let width = (collectionView.frame.width - margins) / CGFloat(self.configuration.library.numberOfItemsInRow)
         return CGSize(width: width, height: width)
     }
 
     public func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumLineSpacingForSectionAt section: Int) -> CGFloat {
-        return YPConfig.library.spacingBetweenItems
+        return self.configuration.library.spacingBetweenItems
     }
 
     public func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, minimumInteritemSpacingForSectionAt section: Int) -> CGFloat {
-        return YPConfig.library.spacingBetweenItems
+        return self.configuration.library.spacingBetweenItems
     }
 }

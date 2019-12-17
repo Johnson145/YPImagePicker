@@ -11,6 +11,7 @@ import Stevia
 
 final class YPMenuItem: UIView {
     
+    var configuration: YPImagePickerConfiguration!
     var textLabel = UILabel()
     var button = UIButton()
     
@@ -28,8 +29,12 @@ final class YPMenuItem: UIView {
         self.init(frame: .zero)
     }
     
+    convenience init(configuration: YPImagePickerConfiguration) {
+        self.configuration = configuration
+    }
+    
     func setup() {
-        backgroundColor = YPImagePickerConfiguration.shared.colors.bottomMenuItemBackgroundColor
+        backgroundColor = self.configuration.colors.bottomMenuItemBackgroundColor
         
         sv(
             textLabel,
@@ -43,17 +48,17 @@ final class YPMenuItem: UIView {
         textLabel.style { l in
             l.textAlignment = .center
             l.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
-            l.textColor = YPImagePickerConfiguration.shared.colors.bottomMenuItemUnselectedTextColor
+            l.textColor = self.configuration.colors.bottomMenuItemUnselectedTextColor
             l.adjustsFontSizeToFitWidth = true
             l.numberOfLines = 2
         }
     }
 
     func select() {
-        textLabel.textColor = YPImagePickerConfiguration.shared.colors.bottomMenuItemSelectedTextColor
+        textLabel.textColor = self.configuration.colors.bottomMenuItemSelectedTextColor
     }
     
     func deselect() {
-        textLabel.textColor = YPImagePickerConfiguration.shared.colors.bottomMenuItemUnselectedTextColor
+        textLabel.textColor = self.configuration.colors.bottomMenuItemUnselectedTextColor
     }
 }

@@ -16,6 +16,8 @@ public protocol YPImagePickerDelegate: AnyObject {
 
 open class YPImagePicker: UINavigationController {
       
+    var configuration: YPImagePickerConfiguration!
+    
     open override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         return .portrait
     }
@@ -27,7 +29,11 @@ open class YPImagePicker: UINavigationController {
     public weak var imagePickerDelegate: YPImagePickerDelegate?
     
     open override var preferredStatusBarStyle: UIStatusBarStyle {
-        return YPImagePickerConfiguration.shared.preferredStatusBarStyle
+        if let configuration = self.configuration {
+            return configuration.preferredStatusBarStyle
+        } else {
+            return YPImagePickerConfiguration.shared.preferredStatusBarStyle
+        }
     }
     
     // This nifty little trick enables us to call the single version of the callbacks.
@@ -47,7 +53,7 @@ open class YPImagePicker: UINavigationController {
     
     /// Get a YPImagePicker with the specified configuration.
     public required init(configuration: YPImagePickerConfiguration) {
-        YPImagePickerConfiguration.shared = configuration
+        self.configuration = configuration
         picker = YPPickerVC()
         super.init(nibName: nil, bundle: nil)
         modalPresentationStyle = .fullScreen // Force .fullScreen as iOS 13 now shows modals as cards by default.
@@ -77,7 +83,7 @@ override open func viewDidLoad() {
             
             // Multiple items flow
             if items.count > 1 {
-                if YPConfig.library.skipSelectionsGallery {
+                if self.configuration.library.skipSelectionsGallery {
                     self?.didSelect(items: items)
                     return
                 } else {
@@ -96,17 +102,17 @@ override open func viewDidLoad() {
                 let completion = { (photo: YPMediaPhoto) in
                     let mediaItem = YPMediaItem.photo(p: photo)
                     // Save new image or existing but modified, to the photo album.
-                    if YPConfig.shouldSaveNewPicturesToAlbum {
+                    if self.configuration.shouldSaveNewPicturesToAlbum {
                         let isModified = photo.modifiedImage != nil
                         if photo.fromCamera || (!photo.fromCamera && isModified) {
-                            YPPhotoSaver.trySaveImage(photo.image, inAlbumNamed: YPConfig.albumName)
+                            YPPhotoSaver.trySaveImage(photo.image, inAlbumNamed: self.configuration.albumName)
                         }
                     }
                     self?.didSelect(items: [mediaItem])
                 }
                 
                 func showCropVC(photo: YPMediaPhoto, completion: @escaping (_ aphoto: YPMediaPhoto) -> Void) {
-                    if case let YPCropType.rectangle(ratio) = YPConfig.showsCrop {
+                    if case let YPCropType.rectangle(ratio) = self.configuration.showsCrop {
                         let cropVC = YPCropVC(image: photo.image, ratio: ratio)
                         cropVC.didFinishCropping = { croppedImage in
                             photo.modifiedImage = croppedImage
@@ -118,7 +124,7 @@ override open func viewDidLoad() {
                     }
                 }
                 
-                if YPConfig.showsPhotoFilters {
+                if self.configuration.showsPhotoFilters {
                     let filterVC = YPPhotoFiltersVC(inputPhoto: photo,
                                                     isFromSelectionVC: false)
                     // Show filters and then crop
@@ -132,7 +138,7 @@ override open func viewDidLoad() {
                     showCropVC(photo: photo, completion: completion)
                 }
             case .video(let video):
-                if YPConfig.showsVideoTrimmer {
+                if self.configuration.showsVideoTrimmer {
                     let videoFiltersVC = YPVideoFiltersVC.initWith(video: video,
                                                                    isFromSelectionVC: false)
                     videoFiltersVC.didSave = { [weak self] outputMedia in
