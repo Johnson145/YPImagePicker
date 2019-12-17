@@ -16,6 +16,9 @@ protocol ImagePickerDelegate: AnyObject {
 
 open class YPPickerVC: YPBottomPager, YPBottomPagerDelegate {
     
+    ///overrides startOnScreen and screens settings
+    var onlyScreen: YPPickerScreen?
+    
     let albumsManager = YPAlbumsManager()
     var shouldHideStatusBar = false
     var initialStatusBarHidden = false
@@ -43,12 +46,54 @@ open class YPPickerVC: YPBottomPager, YPBottomPagerDelegate {
     
     var capturedImage: UIImage?
     
+    init(onlyScreen: YPPickerScreen) {
+        self.onlyScreen = onlyScreen
+        super.init(nibName: nil, bundle: nil)
+    }
+    
+    public required init?(coder: NSCoder) {
+        fatalError("Not implemented")
+    }
+    
     open override func viewDidLoad() {
         super.viewDidLoad()
 
         view.backgroundColor = YPConfig.colors.safeAreaBackgroundColor
         
         delegate = self
+        
+        var cvcs = [UIViewController]()
+        if let onlyScreen = onlyScreen {
+            switch onlyScreen {
+            case .library:
+                libraryVC = YPLibraryVC()
+                libraryVC?.delegate = self
+                cvcs.append(libraryVC!)
+            case .photo:
+                cameraVC = YPCameraVC()
+                cameraVC?.didCapturePhoto = { [weak self] img in
+                    self?.didSelectItems?([YPMediaItem.photo(p: YPMediaPhoto(image: img,
+                                                                            fromCamera: true))])
+                }
+                cvcs.append(cameraVC!)
+            case .video:
+                videoVC = YPVideoCaptureVC()
+                videoVC?.didCaptureVideo = { [weak self] videoURL in
+                    self?.didSelectItems?([YPMediaItem
+                        .video(v: YPMediaVideo(thumbnail: thumbnailFromVideoPath(videoURL),
+                                               videoURL: videoURL,
+                                               fromCamera: true))])
+                }
+                cvcs.append(videoVC!)
+            }
+            controllers = cvcs
+            
+            startOnPage(0)
+            
+            YPHelper.changeBackButtonIcon(self)
+            YPHelper.changeBackButtonTitle(self)
+            return
+        }
         
         // Force Library only when using `minNumberOfItems`.
         if YPConfig.library.minNumberOfItems > 1 {
