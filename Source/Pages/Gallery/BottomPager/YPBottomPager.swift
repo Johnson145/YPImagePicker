@@ -15,7 +15,6 @@ protocol YPBottomPagerDelegate: class {
 }
 open class YPBottomPager: UIViewController, UIScrollViewDelegate {
     
-    var configuration: YPImagePickerConfiguration!
     weak var delegate: YPBottomPagerDelegate?
     var controllers = [UIViewController]() { didSet { reload() } }
     
@@ -68,7 +67,7 @@ open class YPBottomPager: UIViewController, UIScrollViewDelegate {
         
         // Build headers
         for (index, c) in controllers.enumerated() {
-            let menuItem = YPMenuItem(configuration: self.configuration)
+            let menuItem = YPMenuItem()
             menuItem.textLabel.text = c.title?.capitalized
             menuItem.button.tag = index
             menuItem.button.addTarget(self,

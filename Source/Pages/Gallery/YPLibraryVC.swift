@@ -11,7 +11,6 @@ import Photos
 
 public class YPLibraryVC: UIViewController, YPPermissionCheckable {
     
-    var configuration: YPImagePickerConfiguration!
     internal weak var delegate: YPLibraryViewDelegate?
     internal var v: YPLibraryView!
     internal var isProcessing = false // true if video or image is in processing state
@@ -25,14 +24,13 @@ public class YPLibraryVC: UIViewController, YPPermissionCheckable {
 
     // MARK: - Init
     
-    public required init(items: [YPMediaItem]?, configuration: YPImagePickerConfiguration) {
-        self.configuration = configuration
+    public required init(items: [YPMediaItem]?) {
         super.init(nibName: nil, bundle: nil)
-        title = self.configuration.wordings.libraryTitle
+        title = YPConfig.wordings.libraryTitle
     }
     
     public convenience init() {
-        self.init(items: nil, configuration: YPImagePickerConfiguration.shared)
+        self.init(items: nil)
     }
     
     public required init?(coder aDecoder: NSCoder) {
@@ -63,13 +61,13 @@ public class YPLibraryVC: UIViewController, YPPermissionCheckable {
         registerForTapOnPreview()
         refreshMediaRequest()
 
-        if self.configuration.library.defaultMultipleSelection {
+        if YPConfig.library.defaultMultipleSelection {
             multipleSelectionButtonTapped()
         }
-        v.assetViewContainer.multipleSelectionButton.isHidden = !(self.configuration.library.maxNumberOfItems > 1)
-        v.maxNumberWarningLabel.text = String(format: self.configuration.wordings.warningMaxItemsLimit, self.configuration.library.maxNumberOfItems)
+        v.assetViewContainer.multipleSelectionButton.isHidden = !(YPConfig.library.maxNumberOfItems > 1)
+        v.maxNumberWarningLabel.text = String(format: YPConfig.wordings.warningMaxItemsLimit, YPConfig.library.maxNumberOfItems)
         
-        if let preselectedItems = self.configuration.library.preselectedItems {
+        if let preselectedItems = YPConfig.library.preselectedItems {
             selection = preselectedItems.compactMap { item -> YPLibrarySelection? in
                 var itemAsset: PHAsset?
                 switch item {
@@ -129,12 +127,12 @@ public class YPLibraryVC: UIViewController, YPPermissionCheckable {
         // Forces assetZoomableView to have a contentSize.
         // otherwise 0 in first selection triggering the bug : "invalid image size 0x0"
         // Also fits the first element to the square if the onlySquareFromLibrary = true
-        if !self.configuration.library.onlySquare && v.assetZoomableView.contentSize == CGSize(width: 0, height: 0) {
+        if !YPConfig.library.onlySquare && v.assetZoomableView.contentSize == CGSize(width: 0, height: 0) {
             v.assetZoomableView.setZoomScale(1, animated: false)
         }
         
         // Activate multiple selection when using `minNumberOfItems`
-        if self.configuration.library.minNumberOfItems > 1 {
+        if YPConfig.library.minNumberOfItems > 1 {
             multipleSelectionButtonTapped()
         }
     }
@@ -171,7 +169,7 @@ public class YPLibraryVC: UIViewController, YPPermissionCheckable {
         }
         
         // Prevent desactivating multiple selection when using `minNumberOfItems`
-        if self.configuration.library.minNumberOfItems > 1 && multipleSelectionEnabled {
+        if YPConfig.library.minNumberOfItems > 1 && multipleSelectionEnabled {
             return
         }
         
@@ -290,12 +288,12 @@ public class YPLibraryVC: UIViewController, YPPermissionCheckable {
     
     func buildPHFetchOptions() -> PHFetchOptions {
         // Sorting condition
-        if let userOpt = self.configuration.library.options {
+        if let userOpt = YPConfig.library.options {
             return userOpt
         }
         let options = PHFetchOptions()
         options.sortDescriptors = [NSSortDescriptor(key: "creationDate", ascending: false)]
-        options.predicate = self.configuration.library.mediaType.predicate()
+        options.predicate = YPConfig.library.mediaType.predicate()
         return options
     }
     
@@ -357,8 +355,8 @@ public class YPLibraryVC: UIViewController, YPPermissionCheckable {
             return true
         }
         
-        let tooLong = floor(asset.duration) > self.configuration.video.libraryTimeLimit
-        let tooShort = floor(asset.duration) < self.configuration.video.minimumTimeLimit
+        let tooLong = floor(asset.duration) > YPConfig.video.libraryTimeLimit
+        let tooShort = floor(asset.duration) < YPConfig.video.minimumTimeLimit
         
         if tooLong || tooShort {
             DispatchQueue.main.async {
