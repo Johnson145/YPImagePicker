@@ -151,6 +151,20 @@ open class YPPickerVC: YPBottomPager, YPBottomPagerDelegate {
         cameraVC?.v.shotButton.isEnabled = true
         
         updateMode(with: currentController)
+        if let defaultMode = defaultMode {
+            switch defaultMode {
+            case .library:
+                print("viewWillAppear: defaultMode != nil ->" + "\(defaultMode)" + "\(mode)" )
+                updateMode(with: libraryVC!)
+            case .photo:
+                print("viewWillAppear: defaultMode != nil ->" + "\(defaultMode)" + "\(mode)" )
+                updateMode(with: cameraVC!)
+            case .video:
+                print("viewWillAppear: defaultMode != nil ->" + "\(defaultMode)" + "\(mode)" )
+                updateMode(with: videoVC!)
+            }
+            
+        }
     }
     
     open override func viewDidAppear(_ animated: Bool) {
