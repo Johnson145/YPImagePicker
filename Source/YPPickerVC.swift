@@ -364,6 +364,11 @@ open class YPPickerVC: YPBottomPager, YPBottomPagerDelegate {
             title = videoVC?.title
             navigationItem.rightBarButtonItem = nil
         }
+        
+        if let _ = defaultMode {
+            title = ""
+            navigationItem.leftBarButtonItem = nil
+        }
     }
     
     @objc
