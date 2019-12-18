@@ -66,7 +66,7 @@ open class YPImagePicker: UINavigationController {
         fatalError("init(coder:) has not been implemented")
     }
     
-override open func viewDidLoad() {
+    override open func viewDidLoad() {
         super.viewDidLoad()
         picker.didClose = { [weak self] in
             self?._didFinishPicking?([], true)

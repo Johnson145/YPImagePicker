@@ -62,6 +62,53 @@ open class YPPickerVC: YPBottomPager, YPBottomPagerDelegate {
         
         delegate = self
         
+        if let defaultMode = defaultMode {
+            var defaultVCS = [UIViewController]()
+            switch defaultMode {
+            case .photo:
+                cameraVC = YPCameraVC()
+                cameraVC?.didCapturePhoto = { [weak self] img in
+                    self?.didSelectItems?([YPMediaItem.photo(p: YPMediaPhoto(image: img,
+                                                                            fromCamera: true))])
+                }
+                if let cameraVC = cameraVC {
+                    defaultVCS.append(cameraVC)
+                }
+                mode = .camera
+            case .library:
+                libraryVC = YPLibraryVC()
+                libraryVC?.delegate = self
+                if let libraryVC = libraryVC {
+                    defaultVCS.append(libraryVC)
+                }
+                mode = .library
+            case .video:
+                videoVC = YPVideoCaptureVC()
+                videoVC?.didCaptureVideo = { [weak self] videoURL in
+                    self?.didSelectItems?([YPMediaItem
+                        .video(v: YPMediaVideo(thumbnail: thumbnailFromVideoPath(videoURL),
+                                               videoURL: videoURL,
+                                               fromCamera: true))])
+                }
+                if let videoVC = videoVC {
+                    defaultVCS.append(videoVC)
+                }
+                mode = .video
+            }
+            
+            if let index = YPConfig.screens.firstIndex(of: defaultMode) {
+                print("Start page index:" +  "\(index)" + " - " + "\(String(describing: defaultMode))")
+                startOnPage(index)
+            }
+            
+            YPHelper.changeBackButtonIcon(self)
+            YPHelper.changeBackButtonTitle(self)
+            print("returned with correct? settings")
+            return
+        }
+        
+        print("should not go here")
+        
         // Force Library only when using `minNumberOfItems`.
         if YPConfig.library.minNumberOfItems > 1 {
             YPImagePickerConfiguration.shared.screens = [.library]
@@ -126,7 +173,6 @@ open class YPPickerVC: YPBottomPager, YPBottomPagerDelegate {
         }
         
         if let defaultMode = defaultMode {
-            print("found default mode - YPImagePicker")
             switch defaultMode {
             case .library:
                 mode = .library
@@ -151,20 +197,6 @@ open class YPPickerVC: YPBottomPager, YPBottomPagerDelegate {
         cameraVC?.v.shotButton.isEnabled = true
         
         updateMode(with: currentController)
-        if let defaultMode = defaultMode {
-            switch defaultMode {
-            case .library:
-                print("viewWillAppear: defaultMode != nil ->" + "\(defaultMode)" + "\(mode)" )
-                updateMode(with: libraryVC!)
-            case .photo:
-                print("viewWillAppear: defaultMode != nil ->" + "\(defaultMode)" + "\(mode)" )
-                updateMode(with: cameraVC!)
-            case .video:
-                print("viewWillAppear: defaultMode != nil ->" + "\(defaultMode)" + "\(mode)" )
-                updateMode(with: videoVC!)
-            }
-            
-        }
     }
     
     open override func viewDidAppear(_ animated: Bool) {
@@ -212,17 +244,6 @@ open class YPPickerVC: YPBottomPager, YPBottomPagerDelegate {
     
         updateUI()
     }
-    
-//    public func updateMode(for screen: YPPickerScreen) {
-//        switch screen {
-//        case .library:
-//            
-//        case .photo:
-//        
-//        case .video:
-//            
-//        }
-//    }
     
     func stopCurrentCamera() {
         switch mode {
