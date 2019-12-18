@@ -96,6 +96,9 @@ open class YPPickerVC: YPBottomPager, YPBottomPagerDelegate {
                 mode = .video
             }
             
+            print("set default VCS")
+            controllers = defaultVCS
+            
             if let index = YPConfig.screens.firstIndex(of: defaultMode) {
                 print("Start page index:" +  "\(index)" + " - " + "\(String(describing: defaultMode))")
                 startOnPage(index)
