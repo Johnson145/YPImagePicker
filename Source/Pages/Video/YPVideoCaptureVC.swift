@@ -12,17 +12,26 @@ public class YPVideoCaptureVC: UIViewController, YPPermissionCheckable {
     
     public var didCaptureVideo: ((URL) -> Void)?
     
-    private let videoHelper = YPVideoCaptureHelper()
-    private let v = YPCameraView(overlayView: nil)
+    private lazy var videoHelper =  {
+        YPVideoCaptureHelper(config: self.config)
+    }()
+    private lazy var v: YPCameraView = {
+        let result = YPCameraView(overlayView: nil, config: config)
+        return result
+    }()
     private var viewState = ViewState()
+
+    private(set) var config: YPImagePickerConfiguration
     
     // MARK: - Init
     
     public required init?(coder aDecoder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     
-    public required init() {
+    public required init(config: YPImagePickerConfiguration) {
+        self.config = config
+
         super.init(nibName: nil, bundle: nil)
-        title = YPConfig.wordings.videoTitle
+        title = config.wordings.videoTitle
         videoHelper.didCaptureVideo = { [weak self] videoURL in
             self?.didCaptureVideo?(videoURL)
             self?.resetVisualState()
@@ -61,7 +70,7 @@ public class YPVideoCaptureVC: UIViewController, YPPermissionCheckable {
                 return
             }
             self?.videoHelper.start(previewView: strongSelf.v.previewViewContainer,
-                                    withVideoRecordingLimit: YPConfig.video.recordingTimeLimit,
+                                    withVideoRecordingLimit: strongSelf.config.video.recordingTimeLimit,
                                     completion: {
                                         DispatchQueue.main.async {
                                             self?.v.shotButton.isEnabled = true
@@ -82,9 +91,9 @@ public class YPVideoCaptureVC: UIViewController, YPPermissionCheckable {
     // MARK: - Setup
     
     private func setupButtons() {
-        v.flashButton.setImage(YPConfig.icons.flashOffIcon, for: .normal)
-        v.flipButton.setImage(YPConfig.icons.loopIcon, for: .normal)
-        v.shotButton.setImage(YPConfig.icons.captureVideoImage, for: .normal)
+        v.flashButton.setImage(config.icons.flashOffIcon, for: .normal)
+        v.flipButton.setImage(config.icons.loopIcon, for: .normal)
+        v.shotButton.setImage(config.icons.captureVideoImage, for: .normal)
     }
     
     private func linkButtons() {
@@ -209,15 +218,15 @@ public class YPVideoCaptureVC: UIViewController, YPPermissionCheckable {
         func flashImage(for torchMode: FlashMode) -> UIImage {
             switch torchMode {
             case .noFlash: return UIImage()
-            case .on: return YPConfig.icons.flashOnIcon
-            case .off: return YPConfig.icons.flashOffIcon
-            case .auto: return YPConfig.icons.flashAutoIcon
+            case .on: return config.icons.flashOnIcon
+            case .off: return config.icons.flashOffIcon
+            case .auto: return config.icons.flashAutoIcon
             }
         }
         v.flashButton.setImage(flashImage(for: state.flashMode), for: .normal)
         v.flashButton.isEnabled = !state.isRecording
         v.flashButton.isHidden = state.flashMode == .noFlash
-        v.shotButton.setImage(state.isRecording ? YPConfig.icons.captureVideoOnImage : YPConfig.icons.captureVideoImage,
+        v.shotButton.setImage(state.isRecording ? config.icons.captureVideoOnImage : config.icons.captureVideoImage,
                               for: .normal)
         v.flipButton.isEnabled = !state.isRecording
         v.progressBar.progress = state.progress

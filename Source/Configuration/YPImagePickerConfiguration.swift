@@ -11,12 +11,9 @@ import AVFoundation
 import UIKit
 import Photos
 
-/// Typealias for code prettiness
-internal var YPConfig: YPImagePickerConfiguration { return YPImagePickerConfiguration.shared }
 
 public struct YPImagePickerConfiguration {
-    public static var shared: YPImagePickerConfiguration = YPImagePickerConfiguration()
-    
+
     public init() {}
     
     /// Scroll to change modes, defaults to true
@@ -116,7 +113,10 @@ public struct YPImagePickerConfiguration {
         YPFilter(name: "Linear", coreImageFilterName: "CISRGBToneCurveToLinear"),
         YPFilter(name: "Sepia", coreImageFilterName: "CISepiaTone"),
         ]
-    
+
+    public var showNextButton: Bool = true
+    public var showCancelButton: Bool = true
+
     /// Migration
     
     @available(iOS, obsoleted: 3.0.0, renamed: "video.compression")
@@ -157,7 +157,6 @@ public struct YPImagePickerConfiguration {
     
     @available(iOS, obsoleted: 3.0.0, renamed: "library.maxNumberOfItems")
     public var maxNumberOfItems = 1
-    
 }
 
 /// Encapsulates library specific settings.

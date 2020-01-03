@@ -14,6 +14,8 @@ public class YPSelectionsGalleryCell: UICollectionViewCell {
     let imageView = UIImageView()
     let editIcon = UIView()
     let editSquare = UIView()
+
+    var config: YPImagePickerConfiguration!
     
     override init(frame: CGRect) {
         super.init(frame: frame)
@@ -55,7 +57,7 @@ public class YPSelectionsGalleryCell: UICollectionViewCell {
     }
     
     func addRemoveButton(target: Any?, action: Selector) {
-        let image = YPConfig.icons.removeImage
+        let image = config.icons.removeImage
         let removeButton = UIButton(frame: CGRect(origin: CGPoint.zero, size: image.size))
         removeButton.setBackgroundImage(image, for: UIControl.State())
         sv(removeButton)

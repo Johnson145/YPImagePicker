@@ -12,6 +12,12 @@ import Photos
 class YPAlbumsManager {
     
     private var cachedAlbums: [YPAlbum]?
+
+    let config: YPImagePickerConfiguration
+
+    init(config: YPImagePickerConfiguration){
+        self.config = config
+    }
     
     func fetchAlbums() -> [YPAlbum] {
         if let cachedAlbums = cachedAlbums {
@@ -49,7 +55,7 @@ class YPAlbumsManager {
                     }
                     album.collection = assetCollection
                     
-                    if YPConfig.library.mediaType == .photo {
+                    if self.config.library.mediaType == .photo {
                         if !(assetCollection.assetCollectionSubtype == .smartAlbumSlomoVideos
                             || assetCollection.assetCollectionSubtype == .smartAlbumVideos) {
                             albums.append(album)
@@ -66,7 +72,7 @@ class YPAlbumsManager {
     
     func mediaCountFor(collection: PHAssetCollection) -> Int {
         let options = PHFetchOptions()
-        options.predicate = YPConfig.library.mediaType.predicate()
+        options.predicate = config.library.mediaType.predicate()
         let result = PHAsset.fetchAssets(in: collection, options: options)
         return result.count
     }

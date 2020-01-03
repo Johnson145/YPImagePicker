@@ -9,19 +9,25 @@
 import UIKit
 
 class YPPermissionDeniedPopup {
+    let config: YPImagePickerConfiguration
+
+    init(config: YPImagePickerConfiguration) {
+        self.config = config
+    }
+
     func popup(cancelBlock: @escaping () -> Void) -> UIAlertController {
         let alert = UIAlertController(title:
-            YPConfig.wordings.permissionPopup.title,
-                                      message: YPConfig.wordings.permissionPopup.message,
+            config.wordings.permissionPopup.title,
+                                      message: config.wordings.permissionPopup.message,
                                       preferredStyle: .alert)
         alert.addAction(
-            UIAlertAction(title: YPConfig.wordings.permissionPopup.cancel,
+            UIAlertAction(title: config.wordings.permissionPopup.cancel,
                           style: UIAlertAction.Style.cancel,
                           handler: { _ in
                             cancelBlock()
             }))
         alert.addAction(
-            UIAlertAction(title: YPConfig.wordings.permissionPopup.grantPermission,
+            UIAlertAction(title: config.wordings.permissionPopup.grantPermission,
                           style: .default,
                           handler: { _ in
                             if #available(iOS 10.0, *) {

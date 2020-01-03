@@ -20,8 +20,11 @@ class YPCameraView: UIView, UIGestureRecognizerDelegate {
     let timeElapsedLabel = UILabel()
     let progressBar = UIProgressView()
 
-    convenience init(overlayView: UIView? = nil) {
+    var config: YPImagePickerConfiguration!
+
+    convenience init(overlayView: UIView? = nil, config: YPImagePickerConfiguration) {
         self.init(frame: .zero)
+        self.config = config
         
         if let overlayView = overlayView {
             // View Hierarchy
@@ -53,7 +56,7 @@ class YPCameraView: UIView, UIGestureRecognizerDelegate {
         // Layout
         let isIphone4 = UIScreen.main.bounds.height == 480
         let sideMargin: CGFloat = isIphone4 ? 20 : 0
-        if YPConfig.onlySquareImagesFromCamera {
+        if config.onlySquareImagesFromCamera {
             layout(
                 0,
                 |-sideMargin-previewViewContainer-sideMargin-|,
@@ -97,7 +100,7 @@ class YPCameraView: UIView, UIGestureRecognizerDelegate {
         shotButton.size(84).centerHorizontally()
 
         // Style
-        backgroundColor = YPConfig.colors.photoVideoScreenBackgroundColor
+        backgroundColor = config.colors.photoVideoScreenBackgroundColor
         previewViewContainer.backgroundColor = UIColor.ypLabel
         timeElapsedLabel.style { l in
             l.textColor = .white
@@ -109,8 +112,8 @@ class YPCameraView: UIView, UIGestureRecognizerDelegate {
             p.trackTintColor = .clear
             p.tintColor = .ypSystemRed
         }
-        flashButton.setImage(YPConfig.icons.flashOffIcon, for: .normal)
-        flipButton.setImage(YPConfig.icons.loopIcon, for: .normal)
-        shotButton.setImage(YPConfig.icons.capturePhotoImage, for: .normal)
+        flashButton.setImage(config.icons.flashOffIcon, for: .normal)
+        flipButton.setImage(config.icons.loopIcon, for: .normal)
+        shotButton.setImage(config.icons.capturePhotoImage, for: .normal)
     }
 }

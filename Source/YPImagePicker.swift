@@ -25,9 +25,11 @@ open class YPImagePicker: UINavigationController {
         _didFinishPicking = completion
     }
     public weak var imagePickerDelegate: YPImagePickerDelegate?
+
+    let config: YPImagePickerConfiguration
     
     open override var preferredStatusBarStyle: UIStatusBarStyle {
-        return YPImagePickerConfiguration.shared.preferredStatusBarStyle
+        return config.preferredStatusBarStyle
     }
     
     // This nifty little trick enables us to call the single version of the callbacks.
@@ -42,21 +44,21 @@ open class YPImagePicker: UINavigationController {
     
     /// Get a YPImagePicker instance with the default configuration.
     public convenience init() {
-        self.init(configuration: YPImagePickerConfiguration.shared)
+        self.init(configuration: YPImagePickerConfiguration())
     }
     
     /// Get a YPImagePicker with the specified configuration.
     public required init(configuration: YPImagePickerConfiguration) {
-        YPImagePickerConfiguration.shared = configuration
-        picker = YPPickerVC(defaultMode: nil)
+        config = configuration
+        picker = YPPickerVC(defaultMode: nil, config: config)
         super.init(nibName: nil, bundle: nil)
         modalPresentationStyle = .fullScreen // Force .fullScreen as iOS 13 now shows modals as cards by default.
         picker.imagePickerDelegate = self
     }
     
     public init(defaultMode: YPPickerScreen, configuration: YPImagePickerConfiguration) {
-        YPImagePickerConfiguration.shared = configuration
-        picker = YPPickerVC(defaultMode: defaultMode)
+        config = configuration
+        picker = YPPickerVC(defaultMode: defaultMode, config: config)
         super.init(nibName: nil, bundle: nil)
         modalPresentationStyle = .fullScreen // Force .fullScreen as iOS 13 now shows modals as cards by default.
         picker.imagePickerDelegate = self
@@ -64,6 +66,11 @@ open class YPImagePicker: UINavigationController {
     
     public required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")
+    }
+
+    /// Emits the done event where the user selection is final and all callbacks get called
+    public func emitDone() {
+        picker.done()
     }
     
     override open func viewDidLoad() {
@@ -85,11 +92,12 @@ open class YPImagePicker: UINavigationController {
             
             // Multiple items flow
             if items.count > 1 {
-                if YPConfig.library.skipSelectionsGallery {
+                if self?.config.library.skipSelectionsGallery == true {
                     self?.didSelect(items: items)
                     return
                 } else {
-                    let selectionsGalleryVC = YPSelectionsGalleryVC(items: items) { _, items in
+                    guard let this = self else { return }
+                    let selectionsGalleryVC = YPSelectionsGalleryVC(items: items, config: this.config) { _, items in
                         self?.didSelect(items: items)
                     }
                     self?.pushViewController(selectionsGalleryVC, animated: true)
@@ -104,18 +112,19 @@ open class YPImagePicker: UINavigationController {
                 let completion = { (photo: YPMediaPhoto) in
                     let mediaItem = YPMediaItem.photo(p: photo)
                     // Save new image or existing but modified, to the photo album.
-                    if YPConfig.shouldSaveNewPicturesToAlbum {
+                    if self?.config.shouldSaveNewPicturesToAlbum == true {
                         let isModified = photo.modifiedImage != nil
                         if photo.fromCamera || (!photo.fromCamera && isModified) {
-                            YPPhotoSaver.trySaveImage(photo.image, inAlbumNamed: YPConfig.albumName)
+                            YPPhotoSaver.trySaveImage(photo.image, inAlbumNamed: self!.config.albumName)
                         }
                     }
                     self?.didSelect(items: [mediaItem])
                 }
                 
                 func showCropVC(photo: YPMediaPhoto, completion: @escaping (_ aphoto: YPMediaPhoto) -> Void) {
-                    if case let YPCropType.rectangle(ratio) = YPConfig.showsCrop {
-                        let cropVC = YPCropVC(image: photo.image, ratio: ratio)
+                    guard let this = self else { return }
+                    if case let YPCropType.rectangle(ratio) = this.config.showsCrop {
+                        let cropVC = YPCropVC(image: photo.image, ratio: ratio, config: this.config)
                         cropVC.didFinishCropping = { croppedImage in
                             photo.modifiedImage = croppedImage
                             completion(photo)
@@ -126,9 +135,10 @@ open class YPImagePicker: UINavigationController {
                     }
                 }
                 
-                if YPConfig.showsPhotoFilters {
+                if self?.config.showsPhotoFilters == true {
                     let filterVC = YPPhotoFiltersVC(inputPhoto: photo,
-                                                    isFromSelectionVC: false)
+                                                    isFromSelectionVC: false,
+                                                    config: self!.config)
                     // Show filters and then crop
                     filterVC.didSave = { outputMedia in
                         if case let YPMediaItem.photo(outputPhoto) = outputMedia {
@@ -140,9 +150,10 @@ open class YPImagePicker: UINavigationController {
                     showCropVC(photo: photo, completion: completion)
                 }
             case .video(let video):
-                if YPConfig.showsVideoTrimmer {
+                if self?.config.showsVideoTrimmer == true {
                     let videoFiltersVC = YPVideoFiltersVC.initWith(video: video,
-                                                                   isFromSelectionVC: false)
+                                                                   isFromSelectionVC: false,
+                                                                   config: self!.config)
                     videoFiltersVC.didSave = { [weak self] outputMedia in
                         self?.didSelect(items: [outputMedia])
                     }

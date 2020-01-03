@@ -16,7 +16,7 @@ extension YPPhotoCapture {
     private func setupCaptureSession() {
         session.beginConfiguration()
         session.sessionPreset = .photo
-        let cameraPosition: AVCaptureDevice.Position = YPConfig.usesFrontCamera ? .front : .back
+        let cameraPosition: AVCaptureDevice.Position = config.usesFrontCamera ? .front : .back
         let aDevice = deviceForPosition(cameraPosition)
         if let d = aDevice {
             deviceInput = try? AVCaptureDeviceInput(device: d)
@@ -127,7 +127,7 @@ extension YPPhotoCapture {
             if #available(iOS 11.0, *) {
                 maxAvailableVideoZoomFactor = device.maxAvailableVideoZoomFactor
             }
-            maxAvailableVideoZoomFactor = min(maxAvailableVideoZoomFactor, YPConfig.maxCameraZoomFactor)
+            maxAvailableVideoZoomFactor = min(maxAvailableVideoZoomFactor, config.maxCameraZoomFactor)
             
             let desiredZoomFactor = initVideoZoomFactor * scale
             device.videoZoomFactor = max(minAvailableVideoZoomFactor, min(desiredZoomFactor, maxAvailableVideoZoomFactor))

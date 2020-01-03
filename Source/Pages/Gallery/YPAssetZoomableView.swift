@@ -21,10 +21,23 @@ final class YPAssetZoomableView: UIScrollView {
     public var cropAreaDidChange = {}
     public var isVideoMode = false
     public var photoImageView = UIImageView()
-    public var videoView = YPVideoView()
+    public lazy var videoView: YPVideoView = {
+        let result = YPVideoView()
+        result.config = config
+        return result
+    } ()
     public var squaredZoomScale: CGFloat = 1
-    public var minWidth: CGFloat? = YPConfig.library.minWidthForItem
-    
+    public var minWidth: CGFloat? {
+       get {  config.library.minWidthForItem }
+    }
+
+    private(set) var config: YPImagePickerConfiguration!
+
+    func setConfig(_ config: YPImagePickerConfiguration) {
+        self.backgroundColor = config.colors.assetViewBackgroundColor
+        self.config = config
+    }
+
     fileprivate var currentAsset: PHAsset?
     
     // Image view of the asset for convenience. Can be video preview image view or photo image view.
@@ -208,7 +221,6 @@ final class YPAssetZoomableView: UIScrollView {
     
     required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)!
-        backgroundColor = YPConfig.colors.assetViewBackgroundColor
         frame.size = CGSize.zero
         clipsToBounds = true
         photoImageView.frame = CGRect(origin: CGPoint.zero, size: CGSize.zero)
@@ -245,7 +257,7 @@ extension YPAssetZoomableView: UIScrollViewDelegate {
         guard let view = view, view == photoImageView || view == videoView else { return }
         
         // prevent to zoom out
-        if YPConfig.library.onlySquare && scale < squaredZoomScale {
+        if config.library.onlySquare && scale < squaredZoomScale {
             self.fitImage(true, animated: true)
         }
         

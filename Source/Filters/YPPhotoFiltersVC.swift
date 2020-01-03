@@ -15,9 +15,10 @@ protocol IsMediaFilterVC: class {
 
 open class YPPhotoFiltersVC: UIViewController, IsMediaFilterVC, UIGestureRecognizerDelegate {
     
-    required public init(inputPhoto: YPMediaPhoto, isFromSelectionVC: Bool) {
+    required public init(inputPhoto: YPMediaPhoto, isFromSelectionVC: Bool, config: YPImagePickerConfiguration) {
+        self.config = config
         super.init(nibName: nil, bundle: nil)
-        
+
         self.inputPhoto = inputPhoto
         self.isFromSelectionVC = isFromSelectionVC
     }
@@ -28,8 +29,13 @@ open class YPPhotoFiltersVC: UIViewController, IsMediaFilterVC, UIGestureRecogni
     public var didSave: ((YPMediaItem) -> Void)?
     public var didCancel: (() -> Void)?
 
+    let config: YPImagePickerConfiguration
 
-    fileprivate let filters: [YPFilter] = YPConfig.filters
+    fileprivate var filters: [YPFilter] {
+        get {
+            config.filters
+        }
+    }
 
     fileprivate var selectedFilter: YPFilter?
     
@@ -37,9 +43,11 @@ open class YPPhotoFiltersVC: UIViewController, IsMediaFilterVC, UIGestureRecogni
     fileprivate var thumbnailImageForFiltering: CIImage? // Small image for creating filters thumbnails
     fileprivate var currentlySelectedImageThumbnail: UIImage? // Used for comparing with original image when tapped
 
-    fileprivate var v = YPFiltersView()
+    fileprivate lazy var v: YPFiltersView = {
+        return YPFiltersView(config: self.config)
+    }()
 
-    override open var prefersStatusBarHidden: Bool { return YPConfig.hidesStatusBar }
+    override open var prefersStatusBarHidden: Bool { return config.hidesStatusBar }
     override open func loadView() { view = v }
     required public init?(coder aDecoder: NSCoder) { fatalError("init(coder:) has not been implemented") }
     
@@ -75,21 +83,21 @@ open class YPPhotoFiltersVC: UIViewController, IsMediaFilterVC, UIGestureRecogni
         v.collectionView.dataSource = self
         v.collectionView.delegate = self
 
-        view.backgroundColor = YPConfig.colors.filterBackgroundColor
+        view.backgroundColor = config.colors.filterBackgroundColor
         
         // Setup of Navigation Bar
-        title = YPConfig.wordings.filter
+        title = config.wordings.filter
         if isFromSelectionVC {
-            navigationItem.leftBarButtonItem = UIBarButtonItem(title: YPConfig.wordings.cancel,
+            navigationItem.leftBarButtonItem = UIBarButtonItem(title: config.wordings.cancel,
                                                                style: .plain,
                                                                target: self,
                                                                action: #selector(cancel))
-            navigationItem.leftBarButtonItem?.tintColor = YPConfig.colors.tintColor
+            navigationItem.leftBarButtonItem?.tintColor = config.colors.tintColor
         }
         setupRightBarButton()
         
-        YPHelper.changeBackButtonIcon(self)
-        YPHelper.changeBackButtonTitle(self)
+        YPHelper.changeBackButtonIcon(self, config: config)
+        YPHelper.changeBackButtonTitle(self, config: config)
         
         // Touch preview to see original image.
         let touchDownGR = UILongPressGestureRecognizer(target: self,
@@ -103,12 +111,12 @@ open class YPPhotoFiltersVC: UIViewController, IsMediaFilterVC, UIGestureRecogni
     // MARK: Setup - ⚙️
     
     fileprivate func setupRightBarButton() {
-        let rightBarButtonTitle = isFromSelectionVC ? YPConfig.wordings.done : YPConfig.wordings.next
+        let rightBarButtonTitle = isFromSelectionVC ? config.wordings.done : config.wordings.next
         navigationItem.rightBarButtonItem = UIBarButtonItem(title: rightBarButtonTitle,
                                                             style: .done,
                                                             target: self,
                                                             action: #selector(save))
-        navigationItem.rightBarButtonItem?.tintColor = YPConfig.colors.tintColor
+        navigationItem.rightBarButtonItem?.tintColor = config.colors.tintColor
     }
     
     // MARK: - Methods 🏓
@@ -147,7 +155,7 @@ open class YPPhotoFiltersVC: UIViewController, IsMediaFilterVC, UIGestureRecogni
     @objc
     func save() {
         guard let didSave = didSave else { return print("Don't have saveCallback") }
-        self.navigationItem.rightBarButtonItem = YPLoaders.defaultLoader
+        self.navigationItem.rightBarButtonItem = YPLoaders.defaultLoader(config: self.config)
 
         DispatchQueue.global().async {
             if let f = self.selectedFilter,

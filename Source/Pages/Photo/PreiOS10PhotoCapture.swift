@@ -28,6 +28,11 @@ class PreiOS10PhotoCapture: YPPhotoCapture {
         return device.hasFlash
     }
     var initVideoZoomFactor: CGFloat = 1.0
+    var config: YPImagePickerConfiguration
+
+    init(config: YPImagePickerConfiguration) {
+        self.config = config
+    }
     
     // MARK: - Configuration
     

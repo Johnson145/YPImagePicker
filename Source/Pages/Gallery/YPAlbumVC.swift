@@ -13,20 +13,22 @@ import Photos
 class YPAlbumVC: UIViewController {
     
     override var prefersStatusBarHidden: Bool {
-         return YPConfig.hidesStatusBar
+         return config.hidesStatusBar
     }
     
     var didSelectAlbum: ((YPAlbum) -> Void)?
     var albums = [YPAlbum]()
     let albumsManager: YPAlbumsManager
+    let config: YPImagePickerConfiguration
     
     let v = YPAlbumView()
     override func loadView() { view = v }
     
     required init(albumsManager: YPAlbumsManager) {
         self.albumsManager = albumsManager
+        self.config = albumsManager.config
         super.init(nibName: nil, bundle: nil)
-        title = YPConfig.wordings.albumsTitle
+        title = self.config.wordings.albumsTitle
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -35,11 +37,11 @@ class YPAlbumVC: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        navigationItem.leftBarButtonItem = UIBarButtonItem(title: YPConfig.wordings.cancel,
+        navigationItem.leftBarButtonItem = UIBarButtonItem(title: config.wordings.cancel,
                                                            style: .plain,
                                                            target: self,
                                                            action: #selector(close))
-        navigationItem.leftBarButtonItem?.tintColor = YPConfig.colors.tintColor
+        navigationItem.leftBarButtonItem?.tintColor = config.colors.tintColor
         setUpTableView()
         fetchAlbumsInBackground()
     }

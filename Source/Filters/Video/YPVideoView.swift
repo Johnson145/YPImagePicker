@@ -18,12 +18,14 @@ public class YPVideoView: UIView {
     internal let playerView = UIView()
     internal let playerLayer = AVPlayerLayer()
     internal var previewImageView = UIImageView()
+
+    var config: YPImagePickerConfiguration!
     
     public var player: AVPlayer {
         guard playerLayer.player != nil else {
             return AVPlayer()
         }
-        playImageView.image = YPConfig.icons.playImage
+        playImageView.image = config.icons.playImage
         return playerLayer.player!
     }
     

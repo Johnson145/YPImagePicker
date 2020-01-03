@@ -17,13 +17,15 @@ protocol ImagePickerDelegate: AnyObject {
 open class YPPickerVC: YPBottomPager, YPBottomPagerDelegate {
 
     
-    let albumsManager = YPAlbumsManager()
+    private(set) lazy var albumsManager = {
+        return YPAlbumsManager(config: config)
+    }()
     var shouldHideStatusBar = false
     var initialStatusBarHidden = false
     weak var imagePickerDelegate: ImagePickerDelegate?
-    
+
     override open var prefersStatusBarHidden: Bool {
-        return (shouldHideStatusBar || initialStatusBarHidden) && YPConfig.hidesStatusBar
+        return (shouldHideStatusBar || initialStatusBarHidden) && config.hidesStatusBar
     }
     
     /// Private callbacks to YPImagePicker
@@ -46,9 +48,10 @@ open class YPPickerVC: YPBottomPager, YPBottomPagerDelegate {
     
     var defaultMode: YPPickerScreen?
     
-    init(defaultMode: YPPickerScreen?) {
+    init(defaultMode: YPPickerScreen?, config: YPImagePickerConfiguration) {
         self.defaultMode = defaultMode
         super.init(nibName: nil, bundle: nil)
+        self.config = config
     }
     
     public required init?(coder: NSCoder) {
@@ -58,7 +61,7 @@ open class YPPickerVC: YPBottomPager, YPBottomPagerDelegate {
     open override func viewDidLoad() {
         super.viewDidLoad()
 
-        view.backgroundColor = YPConfig.colors.safeAreaBackgroundColor
+        view.backgroundColor = config.colors.safeAreaBackgroundColor
         
         delegate = self
         
@@ -66,7 +69,7 @@ open class YPPickerVC: YPBottomPager, YPBottomPagerDelegate {
             var defaultVCS = [UIViewController]()
             switch defaultMode {
             case .photo:
-                cameraVC = YPCameraVC()
+                cameraVC = YPCameraVC(config: config)
                 cameraVC?.didCapturePhoto = { [weak self] img in
                     self?.didSelectItems?([YPMediaItem.photo(p: YPMediaPhoto(image: img,
                                                                             fromCamera: true))])
@@ -76,14 +79,14 @@ open class YPPickerVC: YPBottomPager, YPBottomPagerDelegate {
                 }
                 mode = .camera
             case .library:
-                libraryVC = YPLibraryVC()
+                libraryVC = YPLibraryVC(config: config)
                 libraryVC?.delegate = self
                 if let libraryVC = libraryVC {
                     defaultVCS.append(libraryVC)
                 }
                 mode = .library
             case .video:
-                videoVC = YPVideoCaptureVC()
+                videoVC = YPVideoCaptureVC(config: config)
                 videoVC?.didCaptureVideo = { [weak self] videoURL in
                     self?.didSelectItems?([YPMediaItem
                         .video(v: YPMediaVideo(thumbnail: thumbnailFromVideoPath(videoURL),
@@ -99,13 +102,13 @@ open class YPPickerVC: YPBottomPager, YPBottomPagerDelegate {
             print("set default VCS")
             controllers = defaultVCS
             
-            if let index = YPConfig.screens.firstIndex(of: defaultMode) {
+            if let index = config.screens.firstIndex(of: defaultMode) {
                 print("Start page index:" +  "\(index)" + " - " + "\(String(describing: defaultMode))")
                 startOnPage(index)
             }
             
-            YPHelper.changeBackButtonIcon(self)
-            YPHelper.changeBackButtonTitle(self)
+            YPHelper.changeBackButtonIcon(self, config: config)
+            YPHelper.changeBackButtonTitle(self, config: config)
             print("returned with correct? settings")
             return
         }
@@ -113,19 +116,19 @@ open class YPPickerVC: YPBottomPager, YPBottomPagerDelegate {
         print("should not go here")
         
         // Force Library only when using `minNumberOfItems`.
-        if YPConfig.library.minNumberOfItems > 1 {
-            YPImagePickerConfiguration.shared.screens = [.library]
+        if config.library.minNumberOfItems > 1 {
+             config.screens = [.library]
         }
         
         // Library
-        if YPConfig.screens.contains(.library) {
-            libraryVC = YPLibraryVC()
+        if config.screens.contains(.library) {
+            libraryVC = YPLibraryVC(config: config)
             libraryVC?.delegate = self
         }
         
         // Camera
-        if YPConfig.screens.contains(.photo) {
-            cameraVC = YPCameraVC()
+        if config.screens.contains(.photo) {
+            cameraVC = YPCameraVC(config: config)
             cameraVC?.didCapturePhoto = { [weak self] img in
                 self?.didSelectItems?([YPMediaItem.photo(p: YPMediaPhoto(image: img,
                                                                         fromCamera: true))])
@@ -133,8 +136,8 @@ open class YPPickerVC: YPBottomPager, YPBottomPagerDelegate {
         }
         
         // Video
-        if YPConfig.screens.contains(.video) {
-            videoVC = YPVideoCaptureVC()
+        if config.screens.contains(.video) {
+            videoVC = YPVideoCaptureVC(config: config)
             videoVC?.didCaptureVideo = { [weak self] videoURL in
                 self?.didSelectItems?([YPMediaItem
                     .video(v: YPMediaVideo(thumbnail: thumbnailFromVideoPath(videoURL),
@@ -145,7 +148,7 @@ open class YPPickerVC: YPBottomPager, YPBottomPagerDelegate {
         
         // Show screens
         var vcs = [UIViewController]()
-        for screen in YPConfig.screens {
+        for screen in config.screens {
             switch screen {
             case .library:
                 if let libraryVC = libraryVC {
@@ -164,8 +167,8 @@ open class YPPickerVC: YPBottomPager, YPBottomPagerDelegate {
         controllers = vcs
         
         // Select good mode
-        if YPConfig.screens.contains(YPConfig.startOnScreen) {
-            switch YPConfig.startOnScreen {
+        if config.screens.contains(config.startOnScreen) {
+            switch config.startOnScreen {
             case .library:
                 mode = .library
             case .photo:
@@ -187,12 +190,12 @@ open class YPPickerVC: YPBottomPager, YPBottomPagerDelegate {
         }
         
         // Select good screen
-        if let index = YPConfig.screens.firstIndex(of: defaultMode != nil ? defaultMode! : YPConfig.startOnScreen) {
+        if let index = config.screens.firstIndex(of: defaultMode != nil ? defaultMode! : config.startOnScreen) {
             startOnPage(index)
         }
         
-        YPHelper.changeBackButtonIcon(self)
-        YPHelper.changeBackButtonTitle(self)
+        YPHelper.changeBackButtonIcon(self, config: config)
+        YPHelper.changeBackButtonTitle(self, config: config)
     }
     
     open override func viewWillAppear(_ animated: Bool) {
@@ -297,7 +300,7 @@ open class YPPickerVC: YPBottomPager, YPBottomPagerDelegate {
             label.textColor = navBarTitleColor
         }
         
-        if YPConfig.library.options != nil {
+        if config.library.options != nil {
             titleView.sv(
                 label
             )
@@ -305,7 +308,7 @@ open class YPPickerVC: YPBottomPager, YPBottomPagerDelegate {
             align(horizontally: label)
         } else {
             let arrow = UIImageView()
-            arrow.image = YPConfig.icons.arrowDownIcon
+            arrow.image = config.icons.arrowDownIcon
             arrow.image = arrow.image?.withRenderingMode(.alwaysTemplate)
             arrow.tintColor = .ypLabel
             
@@ -337,23 +340,29 @@ open class YPPickerVC: YPBottomPager, YPBottomPagerDelegate {
     
     func updateUI() {
         // Update Nav Bar state.
-        navigationItem.leftBarButtonItem = UIBarButtonItem(title: YPConfig.wordings.cancel,
-                                                           style: .plain,
-                                                           target: self,
-                                                           action: #selector(close))
-        navigationItem.leftBarButtonItem?.tintColor = YPConfig.colors.tintColor
+        if config.showCancelButton {
+            navigationItem.leftBarButtonItem = UIBarButtonItem(title: config.wordings.cancel,
+                    style: .plain,
+                    target: self,
+                    action: #selector(close))
+            navigationItem.leftBarButtonItem?.tintColor = config.colors.tintColor
+        }
 
         switch mode {
         case .library:
             setTitleViewWithTitle(aTitle: libraryVC?.title ?? "")
-            navigationItem.rightBarButtonItem = UIBarButtonItem(title: YPConfig.wordings.next,
-                                                                style: .done,
-                                                                target: self,
-                                                                action: #selector(done))
-            navigationItem.rightBarButtonItem?.tintColor = YPConfig.colors.tintColor
-            
-            // Disable Next Button until minNumberOfItems is reached.
-            navigationItem.rightBarButtonItem?.isEnabled = libraryVC!.selection.count >= YPConfig.library.minNumberOfItems
+            if config.showNextButton {
+                navigationItem.rightBarButtonItem = UIBarButtonItem(title: config.wordings.next,
+                        style: .done,
+                        target: self,
+                        action: #selector(done))
+                navigationItem.rightBarButtonItem?.tintColor = config.colors.tintColor
+
+                // Disable Next Button until minNumberOfItems is reached.
+                navigationItem.rightBarButtonItem?.isEnabled = libraryVC!.selection.count >= config.library.minNumberOfItems
+            } else {
+                navigationItem.rightBarButtonItem = nil
+            }
 
         case .camera:
             navigationItem.titleView = nil
@@ -363,11 +372,6 @@ open class YPPickerVC: YPBottomPager, YPBottomPagerDelegate {
             navigationItem.titleView = nil
             title = videoVC?.title
             navigationItem.rightBarButtonItem = nil
-        }
-        
-        if let _ = defaultMode {
-            title = ""
-            navigationItem.leftBarButtonItem = nil
         }
     }
     
@@ -379,7 +383,7 @@ open class YPPickerVC: YPBottomPager, YPBottomPagerDelegate {
         }
         self.didClose?()
     }
-    
+
     // When pressing "Next"
     @objc
     func done() {
@@ -413,14 +417,14 @@ extension YPPickerVC: YPLibraryViewDelegate {
         DispatchQueue.main.async {
             self.v.scrollView.isScrollEnabled = false
             self.libraryVC?.v.fadeInLoader()
-            self.navigationItem.rightBarButtonItem = YPLoaders.defaultLoader
+            self.navigationItem.rightBarButtonItem = YPLoaders.defaultLoader(config: self.config)
         }
     }
     
     public func libraryViewFinishedLoading() {
         libraryVC?.isProcessing = false
         DispatchQueue.main.async {
-            self.v.scrollView.isScrollEnabled = YPConfig.isScrollToChangeModesEnabled
+            self.v.scrollView.isScrollEnabled = self.config.isScrollToChangeModesEnabled
             self.libraryVC?.v.hideLoader()
             self.updateUI()
         }

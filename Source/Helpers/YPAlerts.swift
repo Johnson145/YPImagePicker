@@ -9,10 +9,10 @@
 import UIKit
 
 struct YPAlert {
-    static func videoTooLongAlert(_ sourceView: UIView) -> UIAlertController {
-        let msg = String(format: YPConfig.wordings.videoDurationPopup.tooLongMessage,
-                         "\(YPConfig.video.libraryTimeLimit)")
-        let alert = UIAlertController(title: YPConfig.wordings.videoDurationPopup.title,
+    static func videoTooLongAlert(_ sourceView: UIView, config: YPImagePickerConfiguration) -> UIAlertController {
+        let msg = String(format: config.wordings.videoDurationPopup.tooLongMessage,
+                         "\(config.video.libraryTimeLimit)")
+        let alert = UIAlertController(title: config.wordings.videoDurationPopup.title,
                                       message: msg,
                                       preferredStyle: .actionSheet)
         if let popoverController = alert.popoverPresentationController {
@@ -20,14 +20,14 @@ struct YPAlert {
             popoverController.sourceRect = CGRect(x: sourceView.bounds.midX, y: sourceView.bounds.midY, width: 0, height: 0)
             popoverController.permittedArrowDirections = []
         }
-        alert.addAction(UIAlertAction(title: YPConfig.wordings.ok, style: UIAlertAction.Style.default, handler: nil))
+        alert.addAction(UIAlertAction(title: config.wordings.ok, style: UIAlertAction.Style.default, handler: nil))
         return alert
     }
     
-    static func videoTooShortAlert(_ sourceView: UIView) -> UIAlertController {
-        let msg = String(format: YPConfig.wordings.videoDurationPopup.tooShortMessage,
-                         "\(YPConfig.video.minimumTimeLimit)")
-        let alert = UIAlertController(title: YPConfig.wordings.videoDurationPopup.title,
+    static func videoTooShortAlert(_ sourceView: UIView, config: YPImagePickerConfiguration) -> UIAlertController {
+        let msg = String(format: config.wordings.videoDurationPopup.tooShortMessage,
+                         "\(config.video.minimumTimeLimit)")
+        let alert = UIAlertController(title: config.wordings.videoDurationPopup.title,
                                       message: msg,
                                       preferredStyle: .actionSheet)
         if let popoverController = alert.popoverPresentationController {
@@ -35,7 +35,7 @@ struct YPAlert {
             popoverController.sourceRect = CGRect(x: sourceView.bounds.midX, y: sourceView.bounds.midY, width: 0, height: 0)
             popoverController.permittedArrowDirections = []
         }
-        alert.addAction(UIAlertAction(title: YPConfig.wordings.ok, style: UIAlertAction.Style.default, handler: nil))
+        alert.addAction(UIAlertAction(title: config.wordings.ok, style: UIAlertAction.Style.default, handler: nil))
         return alert
     }
 }

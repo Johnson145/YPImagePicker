@@ -29,9 +29,15 @@ class YPVideoCaptureHelper: NSObject {
     private var previewView: UIView!
     private var motionManager = CMMotionManager()
     private var initVideoZoomFactor: CGFloat = 1.0
-    
+
+    let config: YPImagePickerConfiguration
+
+
     // MARK: - Init
-    
+    init(config: YPImagePickerConfiguration){
+        self.config = config
+    }
+
     public func start(previewView: UIView, withVideoRecordingLimit: TimeInterval, completion: @escaping () -> Void) {
         self.previewView = previewView
         self.videoRecordingTimeLimit = withVideoRecordingLimit
@@ -137,7 +143,7 @@ class YPVideoCaptureHelper: NSObject {
            if #available(iOS 11.0, *) {
                maxAvailableVideoZoomFactor = device.maxAvailableVideoZoomFactor
            }
-           maxAvailableVideoZoomFactor = min(maxAvailableVideoZoomFactor, YPConfig.maxCameraZoomFactor)
+           maxAvailableVideoZoomFactor = min(maxAvailableVideoZoomFactor, config.maxCameraZoomFactor)
            
            let desiredZoomFactor = initVideoZoomFactor * scale
            device.videoZoomFactor = max(minAvailableVideoZoomFactor, min(desiredZoomFactor, maxAvailableVideoZoomFactor))
@@ -181,7 +187,7 @@ class YPVideoCaptureHelper: NSObject {
     
     public func startRecording() {
         
-        let outputURL = YPVideoProcessor.makeVideoPathURL(temporaryFolder: true, fileName: "recordedVideoRAW")
+        let outputURL = YPVideoProcessor.makeVideoPathURL(temporaryFolder: true, fileName: "recordedVideoRAW", config: config)
         
         checkOrientation { [weak self] orientation in
             guard let strongSelf = self else {
@@ -228,7 +234,7 @@ class YPVideoCaptureHelper: NSObject {
                 CMTimeMakeWithSeconds(self.videoRecordingTimeLimit, preferredTimescale: timeScale)
             videoOutput.maxRecordedDuration = maxDuration
             videoOutput.minFreeDiskSpaceLimit = 1024 * 1024
-            if (YPConfig.video.fileType == .mp4) {
+            if (config.video.fileType == .mp4) {
                 videoOutput.movieFragmentInterval = .invalid // Allows audio for MP4s over 10 seconds.
             }
             if session.canAddOutput(videoOutput) {
@@ -307,7 +313,7 @@ extension YPVideoCaptureHelper: AVCaptureFileOutputRecordingDelegate {
                            didFinishRecordingTo outputFileURL: URL,
                            from connections: [AVCaptureConnection],
                            error: Error?) {
-        YPVideoProcessor.cropToSquare(filePath: outputFileURL) { [weak self] url in
+        YPVideoProcessor.cropToSquare(filePath: outputFileURL, config: config) { [weak self] url in
             guard let _self = self, let u = url else { return }
             _self.didCaptureVideo?(u)
         }

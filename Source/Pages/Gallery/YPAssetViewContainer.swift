@@ -13,18 +13,32 @@ import AVFoundation
 
 /// The container for asset (video or image). It containts the YPGridView and YPAssetZoomableView.
 class YPAssetViewContainer: UIView {
-    public var zoomableView: YPAssetZoomableView?
+    private(set) var zoomableView: YPAssetZoomableView?
     public let grid = YPGridView()
     public let curtain = UIView()
     public let spinnerView = UIView()
     public let squareCropButton = UIButton()
     public let multipleSelectionButton = UIButton()
-    public var onlySquare = YPConfig.library.onlySquare
+    public var onlySquare: Bool { get { config.library.onlySquare } }
     public var isShown = true
     
     private let spinner = UIActivityIndicatorView(style: .white)
-    private var shouldCropToSquare = YPConfig.library.isSquareByDefault
+    private var shouldCropToSquare: Bool = false
     private var isMultipleSelection = false
+
+    private(set) var config: YPImagePickerConfiguration
+
+    init(config: YPImagePickerConfiguration) {
+        self.config = config
+        shouldCropToSquare = config.library.isSquareByDefault
+        super.init(frame: .zero)
+    }
+
+    required init? (coder: NSCoder) {
+        self.config = YPImagePickerConfiguration()
+        shouldCropToSquare = config.library.isSquareByDefault
+        super.init(coder: coder)
+    }
 
     override func awakeFromNib() {
         super.awakeFromNib()
@@ -35,6 +49,7 @@ class YPAssetViewContainer: UIView {
         
         for sv in subviews {
             if let cv = sv as? YPAssetZoomableView {
+                cv.setConfig(self.config)
                 zoomableView = cv
                 zoomableView?.myDelegate = self
             }
@@ -68,7 +83,7 @@ class YPAssetViewContainer: UIView {
         
         if !onlySquare {
             // Crop Button
-            squareCropButton.setImage(YPConfig.icons.cropIcon, for: .normal)
+            squareCropButton.setImage(config.icons.cropIcon, for: .normal)
             sv(squareCropButton)
             squareCropButton.size(42)
             |-15-squareCropButton
@@ -79,7 +94,7 @@ class YPAssetViewContainer: UIView {
         sv(multipleSelectionButton)
         multipleSelectionButton.size(42)
         multipleSelectionButton-15-|
-        multipleSelectionButton.setImage(YPConfig.icons.multipleSelectionOffIcon, for: .normal)
+        multipleSelectionButton.setImage(config.icons.multipleSelectionOffIcon, for: .normal)
         multipleSelectionButton.Bottom == zoomableView!.Bottom - 15
         
     }
@@ -105,7 +120,7 @@ class YPAssetViewContainer: UIView {
             }
         }
         
-        let shouldFit = YPConfig.library.onlySquare ? true : shouldCropToSquare
+        let shouldFit = config.library.onlySquare ? true : shouldCropToSquare
         zoomableView?.fitImage(shouldFit)
     }
     
@@ -114,7 +129,7 @@ class YPAssetViewContainer: UIView {
     /// Use this to update the multiple selection mode UI state for the YPAssetViewContainer
     public func setMultipleSelectionMode(on: Bool) {
         isMultipleSelection = on
-        let image = on ? YPConfig.icons.multipleSelectionOnIcon : YPConfig.icons.multipleSelectionOffIcon
+        let image = on ? config.icons.multipleSelectionOnIcon : config.icons.multipleSelectionOffIcon
         multipleSelectionButton.setImage(image, for: .normal)
         refreshSquareCropButton()
     }
