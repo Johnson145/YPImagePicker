@@ -14,8 +14,15 @@ protocol ImagePickerDelegate: AnyObject {
     func noPhotos()
 }
 
+public protocol RootNavigation: class {
+    var navigationItem: UINavigationItem { get }
+}
+
+extension UIViewController: RootNavigation{ }
+
 open class YPPickerVC: YPBottomPager, YPBottomPagerDelegate {
 
+    weak var rootNavigation: RootNavigation?
     
     private(set) lazy var albumsManager = {
         return YPAlbumsManager(config: config)
@@ -51,6 +58,7 @@ open class YPPickerVC: YPBottomPager, YPBottomPagerDelegate {
     init(defaultMode: YPPickerScreen?, config: YPImagePickerConfiguration) {
         self.defaultMode = defaultMode
         super.init(nibName: nil, bundle: nil)
+        self.rootNavigation = self
         self.config = config
     }
     
@@ -271,6 +279,9 @@ open class YPPickerVC: YPBottomPager, YPBottomPagerDelegate {
     @objc
     func navBarTapped() {
         let vc = YPAlbumVC(albumsManager: albumsManager)
+        if self.rootNavigation !== self {
+            vc.rootNavigation = self.rootNavigation
+        }
         let navVC = UINavigationController(rootViewController: vc)
         
         vc.didSelectAlbum = { [weak self] album in
@@ -335,43 +346,43 @@ open class YPPickerVC: YPBottomPager, YPBottomPagerDelegate {
         label.firstBaselineAnchor.constraint(equalTo: titleView.bottomAnchor, constant: -14).isActive = true
         
         titleView.heightAnchor.constraint(equalToConstant: 40).isActive = true
-        navigationItem.titleView = titleView
+        rootNavigation?.navigationItem.titleView = titleView
     }
     
     func updateUI() {
         // Update Nav Bar state.
         if config.showCancelButton {
-            navigationItem.leftBarButtonItem = UIBarButtonItem(title: config.wordings.cancel,
+            rootNavigation?.navigationItem.leftBarButtonItem = UIBarButtonItem(title: config.wordings.cancel,
                     style: .plain,
                     target: self,
                     action: #selector(close))
-            navigationItem.leftBarButtonItem?.tintColor = config.colors.tintColor
+            rootNavigation?.navigationItem.leftBarButtonItem?.tintColor = config.colors.tintColor
         }
 
         switch mode {
         case .library:
             setTitleViewWithTitle(aTitle: libraryVC?.title ?? "")
             if config.showNextButton {
-                navigationItem.rightBarButtonItem = UIBarButtonItem(title: config.wordings.next,
+                rootNavigation?.navigationItem.rightBarButtonItem = UIBarButtonItem(title: config.wordings.next,
                         style: .done,
                         target: self,
                         action: #selector(done))
-                navigationItem.rightBarButtonItem?.tintColor = config.colors.tintColor
+                rootNavigation?.navigationItem.rightBarButtonItem?.tintColor = config.colors.tintColor
 
                 // Disable Next Button until minNumberOfItems is reached.
-                navigationItem.rightBarButtonItem?.isEnabled = libraryVC!.selection.count >= config.library.minNumberOfItems
+                rootNavigation?.navigationItem.rightBarButtonItem?.isEnabled = libraryVC!.selection.count >= config.library.minNumberOfItems
             } else {
-                navigationItem.rightBarButtonItem = nil
+                rootNavigation?.navigationItem.rightBarButtonItem = nil
             }
 
         case .camera:
-            navigationItem.titleView = nil
+            rootNavigation?.navigationItem.titleView = nil
             title = cameraVC?.title
-            navigationItem.rightBarButtonItem = nil
+            rootNavigation?.navigationItem.rightBarButtonItem = nil
         case .video:
-            navigationItem.titleView = nil
+            rootNavigation?.navigationItem.titleView = nil
             title = videoVC?.title
-            navigationItem.rightBarButtonItem = nil
+            rootNavigation?.navigationItem.rightBarButtonItem = nil
         }
     }
     
@@ -417,7 +428,7 @@ extension YPPickerVC: YPLibraryViewDelegate {
         DispatchQueue.main.async {
             self.v.scrollView.isScrollEnabled = false
             self.libraryVC?.v.fadeInLoader()
-            self.navigationItem.rightBarButtonItem = YPLoaders.defaultLoader(config: self.config)
+            self.rootNavigation?.navigationItem.rightBarButtonItem = YPLoaders.defaultLoader(config: self.config)
         }
     }
     

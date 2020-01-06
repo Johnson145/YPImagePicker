@@ -11,6 +11,8 @@ import Photos
 import PryntTrimmerView
 
 public class YPVideoFiltersVC: UIViewController, IsMediaFilterVC {
+
+    weak var rootNavigation: RootNavigation?
     
     @IBOutlet weak var trimBottomItem: YPMenuItem! {
         didSet {
@@ -49,6 +51,7 @@ public class YPVideoFiltersVC: UIViewController, IsMediaFilterVC {
         vc.config = config
         vc.inputVideo = video
         vc.isFromSelectionVC = isFromSelectionVC
+        vc.rootNavigation = vc
         
         return vc
     }
@@ -90,11 +93,11 @@ public class YPVideoFiltersVC: UIViewController, IsMediaFilterVC {
         // Navigation bar setup
         title = config.wordings.trim
         if isFromSelectionVC {
-            navigationItem.leftBarButtonItem = UIBarButtonItem(title: config.wordings.cancel,
+            rootNavigation?.navigationItem.leftBarButtonItem = UIBarButtonItem(title: config.wordings.cancel,
                                                                style: .plain,
                                                                target: self,
                                                                action: #selector(cancel))
-            navigationItem.leftBarButtonItem?.tintColor = config.colors.tintColor
+            rootNavigation?.navigationItem.leftBarButtonItem?.tintColor = config.colors.tintColor
         }
         setupRightBarButtonItem()
     }
@@ -120,18 +123,18 @@ public class YPVideoFiltersVC: UIViewController, IsMediaFilterVC {
     
     func setupRightBarButtonItem() {
         let rightBarButtonTitle = isFromSelectionVC ? config.wordings.done : config.wordings.next
-        navigationItem.rightBarButtonItem = UIBarButtonItem(title: rightBarButtonTitle,
+        rootNavigation?.navigationItem.rightBarButtonItem = UIBarButtonItem(title: rightBarButtonTitle,
                                                             style: .done,
                                                             target: self,
                                                             action: #selector(save))
-        navigationItem.rightBarButtonItem?.tintColor = config.colors.tintColor
+        rootNavigation?.navigationItem.rightBarButtonItem?.tintColor = config.colors.tintColor
     }
     
     // MARK: - Top buttons
 
     @objc public func save() {
         guard let didSave = didSave else { return print("Don't have saveCallback") }
-        navigationItem.rightBarButtonItem = YPLoaders.defaultLoader(config: self.config)
+        rootNavigation?.navigationItem.rightBarButtonItem = YPLoaders.defaultLoader(config: self.config)
 
         do {
             let asset = AVURLAsset(url: inputVideo.url)

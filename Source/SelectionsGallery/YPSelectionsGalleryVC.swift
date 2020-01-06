@@ -9,7 +9,8 @@
 import UIKit
 
 public class YPSelectionsGalleryVC: UIViewController {
-    
+
+    weak var rootNavigation: RootNavigation?
     public var items: [YPMediaItem] = []
     public var didFinishHandler: ((_ gallery: YPSelectionsGalleryVC, _ items: [YPMediaItem]) -> Void)?
     private var lastContentOffsetX: CGFloat = 0
@@ -26,6 +27,7 @@ public class YPSelectionsGalleryVC: UIViewController {
         super.init(nibName: nil, bundle: nil)
         self.items = items
         self.didFinishHandler = didFinishHandler
+        self.rootNavigation = self
     }
     
     public required init?(coder aDecoder: NSCoder) {
@@ -41,11 +43,11 @@ public class YPSelectionsGalleryVC: UIViewController {
         v.collectionView.delegate = self
         
         // Setup navigation bar
-        navigationItem.rightBarButtonItem = UIBarButtonItem(title: config.wordings.next,
+        rootNavigation?.navigationItem.rightBarButtonItem = UIBarButtonItem(title: config.wordings.next,
                                                             style: .done,
                                                             target: self,
                                                             action: #selector(done))
-        navigationItem.rightBarButtonItem?.tintColor = config.colors.tintColor
+        rootNavigation?.navigationItem.rightBarButtonItem?.tintColor = config.colors.tintColor
         
         YPHelper.changeBackButtonIcon(self, config: config)
         YPHelper.changeBackButtonTitle(self, config: config)

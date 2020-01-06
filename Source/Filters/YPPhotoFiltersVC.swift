@@ -14,13 +14,15 @@ protocol IsMediaFilterVC: class {
 }
 
 open class YPPhotoFiltersVC: UIViewController, IsMediaFilterVC, UIGestureRecognizerDelegate {
-    
+
+    weak var rootNavigation: RootNavigation?
     required public init(inputPhoto: YPMediaPhoto, isFromSelectionVC: Bool, config: YPImagePickerConfiguration) {
         self.config = config
         super.init(nibName: nil, bundle: nil)
 
         self.inputPhoto = inputPhoto
         self.isFromSelectionVC = isFromSelectionVC
+        self.rootNavigation = self
     }
     
     public var inputPhoto: YPMediaPhoto!
@@ -88,11 +90,11 @@ open class YPPhotoFiltersVC: UIViewController, IsMediaFilterVC, UIGestureRecogni
         // Setup of Navigation Bar
         title = config.wordings.filter
         if isFromSelectionVC {
-            navigationItem.leftBarButtonItem = UIBarButtonItem(title: config.wordings.cancel,
+            rootNavigation?.navigationItem.leftBarButtonItem = UIBarButtonItem(title: config.wordings.cancel,
                                                                style: .plain,
                                                                target: self,
                                                                action: #selector(cancel))
-            navigationItem.leftBarButtonItem?.tintColor = config.colors.tintColor
+            rootNavigation?.navigationItem.leftBarButtonItem?.tintColor = config.colors.tintColor
         }
         setupRightBarButton()
         
@@ -112,11 +114,11 @@ open class YPPhotoFiltersVC: UIViewController, IsMediaFilterVC, UIGestureRecogni
     
     fileprivate func setupRightBarButton() {
         let rightBarButtonTitle = isFromSelectionVC ? config.wordings.done : config.wordings.next
-        navigationItem.rightBarButtonItem = UIBarButtonItem(title: rightBarButtonTitle,
+        rootNavigation?.navigationItem.rightBarButtonItem = UIBarButtonItem(title: rightBarButtonTitle,
                                                             style: .done,
                                                             target: self,
                                                             action: #selector(save))
-        navigationItem.rightBarButtonItem?.tintColor = config.colors.tintColor
+        rootNavigation?.navigationItem.rightBarButtonItem?.tintColor = config.colors.tintColor
     }
     
     // MARK: - Methods 🏓
@@ -155,7 +157,7 @@ open class YPPhotoFiltersVC: UIViewController, IsMediaFilterVC, UIGestureRecogni
     @objc
     func save() {
         guard let didSave = didSave else { return print("Don't have saveCallback") }
-        self.navigationItem.rightBarButtonItem = YPLoaders.defaultLoader(config: self.config)
+        rootNavigation?.navigationItem.rightBarButtonItem = YPLoaders.defaultLoader(config: self.config)
 
         DispatchQueue.global().async {
             if let f = self.selectedFilter,

@@ -11,6 +11,8 @@ import Stevia
 import Photos
 
 class YPAlbumVC: UIViewController {
+
+    weak var rootNavigation: RootNavigation?
     
     override var prefersStatusBarHidden: Bool {
          return config.hidesStatusBar
@@ -29,6 +31,7 @@ class YPAlbumVC: UIViewController {
         self.config = albumsManager.config
         super.init(nibName: nil, bundle: nil)
         title = self.config.wordings.albumsTitle
+        self.rootNavigation = self
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -37,11 +40,15 @@ class YPAlbumVC: UIViewController {
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        navigationItem.leftBarButtonItem = UIBarButtonItem(title: config.wordings.cancel,
-                                                           style: .plain,
-                                                           target: self,
-                                                           action: #selector(close))
-        navigationItem.leftBarButtonItem?.tintColor = config.colors.tintColor
+        if self.config.showCancelButton {
+            rootNavigation?.navigationItem.leftBarButtonItem = UIBarButtonItem(title: config.wordings.cancel,
+                    style: .plain,
+                    target: self,
+                    action: #selector(close))
+            rootNavigation?.navigationItem.leftBarButtonItem?.tintColor = config.colors.tintColor
+        } else {
+            rootNavigation?.navigationItem.leftBarButtonItem = nil
+        }
         setUpTableView()
         fetchAlbumsInBackground()
     }

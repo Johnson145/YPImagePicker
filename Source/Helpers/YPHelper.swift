@@ -31,7 +31,7 @@ struct YPHelper {
         }
     }
     
-    static func changeBackButtonTitle(_ controller: UIViewController, config: YPImagePickerConfiguration) {
+    static func changeBackButtonTitle(_ controller: RootNavigation, config: YPImagePickerConfiguration) {
         if config.icons.hideBackButtonTitle {
             controller.navigationItem.backBarButtonItem = UIBarButtonItem(title: "",
                                                                           style: .plain,
