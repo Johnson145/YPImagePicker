@@ -18,7 +18,11 @@ open class YPBottomPager: UIViewController, UIScrollViewDelegate {
     weak var delegate: YPBottomPagerDelegate?
     var controllers = [UIViewController]() { didSet { reload() } }
     
-    var v = YPBottomPagerView()
+    lazy var v = {
+        return YPBottomPagerView(config: self.config)
+    }()
+
+    var config: YPImagePickerConfiguration!
     
     var currentPage = 0
     
@@ -68,6 +72,7 @@ open class YPBottomPager: UIViewController, UIScrollViewDelegate {
         // Build headers
         for (index, c) in controllers.enumerated() {
             let menuItem = YPMenuItem()
+            menuItem.config = config
             menuItem.textLabel.text = c.title?.capitalized
             menuItem.button.tag = index
             menuItem.button.addTarget(self,

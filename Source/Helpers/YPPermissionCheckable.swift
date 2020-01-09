@@ -11,10 +11,11 @@ import AVFoundation
 
 protocol YPPermissionCheckable {
     func checkPermission()
+    var config: YPImagePickerConfiguration { get }
 }
 
 extension YPPermissionCheckable where Self: UIViewController {
-    
+
     func checkPermission() {
         checkPermissionToAccessVideo { _ in }
     }
@@ -34,7 +35,7 @@ extension YPPermissionCheckable where Self: UIViewController {
         case .authorized:
             block(true)
         case .restricted, .denied:
-            let popup = YPPermissionDeniedPopup()
+            let popup = YPPermissionDeniedPopup(config: self.config)
             let alert = popup.popup(cancelBlock: {
                 block(false)
             })

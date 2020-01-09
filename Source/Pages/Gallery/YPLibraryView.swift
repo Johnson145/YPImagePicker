@@ -15,7 +15,13 @@ final class YPLibraryView: UIView {
     let assetZoomableViewMinimalVisibleHeight: CGFloat  = 50
     
     @IBOutlet weak var collectionView: UICollectionView!
-    @IBOutlet weak var assetZoomableView: YPAssetZoomableView!
+    @IBOutlet weak var assetZoomableView: YPAssetZoomableView! {
+        didSet {
+            if let config = self.config {
+                assetZoomableView?.setConfig(config)
+            }
+        }
+    }
     @IBOutlet weak var assetViewContainer: YPAssetViewContainer!
     @IBOutlet weak var assetViewContainerConstraintTop: NSLayoutConstraint!
     
@@ -23,10 +29,19 @@ final class YPLibraryView: UIView {
     let maxNumberWarningLabel = UILabel()
     let progressView = UIProgressView()
     let line = UIView()
+
+    var config: YPImagePickerConfiguration! {
+        didSet {
+            if config == nil { return }
+            self.assetZoomableView?.setConfig(config)
+            progressView.trackTintColor = config.colors.progressBarTrackColor
+            progressView.progressTintColor = config.colors.progressBarCompletedColor ?? config.colors.tintColor
+        }
+    }
     
     override func awakeFromNib() {
         super.awakeFromNib()
-        
+
         sv(
             line
         )
@@ -77,8 +92,6 @@ final class YPLibraryView: UIView {
         progressView.Top == line.Top
         progressView.Width == line.Width
         progressView.progressViewStyle = .bar
-        progressView.trackTintColor = YPConfig.colors.progressBarTrackColor
-        progressView.progressTintColor = YPConfig.colors.progressBarCompletedColor ?? YPConfig.colors.tintColor
         progressView.isHidden = true
         progressView.isUserInteractionEnabled = false
     }
@@ -88,11 +101,12 @@ final class YPLibraryView: UIView {
 
 extension YPLibraryView {
     
-    class func xibView() -> YPLibraryView? {
+    class func xibView(config: YPImagePickerConfiguration) -> YPLibraryView? {
         let bundle = Bundle(for: YPPickerVC.self)
         let nib = UINib(nibName: "YPLibraryView",
                         bundle: bundle)
         let xibView = nib.instantiate(withOwner: self, options: nil)[0] as? YPLibraryView
+        xibView?.config = config
         return xibView
     }
     

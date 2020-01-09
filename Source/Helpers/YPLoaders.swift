@@ -10,9 +10,10 @@ import UIKit
 
 struct YPLoaders {
 
-    static var defaultLoader: UIBarButtonItem {
+    static func defaultLoader(config: YPImagePickerConfiguration) -> UIBarButtonItem {
         let spinner = UIActivityIndicatorView(style: .gray)
-        spinner.color = YPConfig.colors.navigationBarActivityIndicatorColor
+        // TODO: Make this setable not constant
+        spinner.color = config.colors.navigationBarActivityIndicatorColor
         spinner.startAnimating()
         return UIBarButtonItem(customView: spinner)
     }

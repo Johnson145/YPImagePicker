@@ -17,20 +17,23 @@ class YPCropVC: UIViewController {
     
     public var didFinishCropping: ((UIImage) -> Void)?
     
-    override var prefersStatusBarHidden: Bool { return YPConfig.hidesStatusBar }
+    override var prefersStatusBarHidden: Bool { return config.hidesStatusBar }
     
     private let originalImage: UIImage
     private let pinchGR = UIPinchGestureRecognizer()
     private let panGR = UIPanGestureRecognizer()
+
+    private(set) var config: YPImagePickerConfiguration
     
     private let v: YPCropView
     override func loadView() { view = v }
     
-    required init(image: UIImage, ratio: Double) {
+    required init(image: UIImage, ratio: Double, config: YPImagePickerConfiguration) {
+        self.config = config
         v = YPCropView(image: image, ratio: ratio)
         originalImage = image
         super.init(nibName: nil, bundle: nil)
-        self.title = YPConfig.wordings.crop
+        self.title = config.wordings.crop
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -44,14 +47,14 @@ class YPCropVC: UIViewController {
     }
     
     func setupToolbar() {
-        let cancelButton = UIBarButtonItem(title: YPConfig.wordings.cancel,
+        let cancelButton = UIBarButtonItem(title: config.wordings.cancel,
                                            style: .plain,
                                            target: self,
                                            action: #selector(cancel))
         
         let flexibleSpace = UIBarButtonItem(barButtonSystemItem: .flexibleSpace, target: nil, action: nil)
         
-        let saveButton = UIBarButtonItem(title: YPConfig.wordings.save,
+        let saveButton = UIBarButtonItem(title: config.wordings.save,
                                            style: .plain,
                                            target: self,
                                            action: #selector(done))

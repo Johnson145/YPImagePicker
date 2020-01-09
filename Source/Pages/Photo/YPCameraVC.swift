@@ -13,18 +13,23 @@ import Photos
 public class YPCameraVC: UIViewController, UIGestureRecognizerDelegate, YPPermissionCheckable {
     
     public var didCapturePhoto: ((UIImage) -> Void)?
-    let photoCapture = newPhotoCapture()
+    let photoCapture: YPPhotoCapture
     let v: YPCameraView!
     var isInited = false
     var videoZoomFactor: CGFloat = 1.0
     override public func loadView() { view = v }
+    let config: YPImagePickerConfiguration
 
-    public required init() {
-        self.v = YPCameraView(overlayView: YPConfig.overlayView)
+    public required init(config: YPImagePickerConfiguration) {
+        self.v = YPCameraView(overlayView: config.overlayView, config: config)
+        self.config = config
+        photoCapture = newPhotoCapture(config: config)
+
         super.init(nibName: nil, bundle: nil)
-        title = YPConfig.wordings.cameraTitle
+        title = config.wordings.cameraTitle
         
         YPDeviceOrientationHelper.shared.startDeviceOrientationNotifier { _ in }
+
     }
     
     public required init?(coder aDecoder: NSCoder) {
@@ -144,7 +149,7 @@ public class YPCameraVC: UIViewController, UIGestureRecognizerDelegate, YPPermis
             
             var image = shotImage
             // Crop the image if the output needs to be square.
-            if YPConfig.onlySquareImagesFromCamera {
+            if self.config.onlySquareImagesFromCamera {
                 image = self.cropImageToSquare(image)
             }
 
@@ -155,7 +160,7 @@ public class YPCameraVC: UIViewController, UIGestureRecognizerDelegate, YPPermis
             
             DispatchQueue.main.async {
                 let noOrietationImage = image.resetOrientation()
-                self.didCapturePhoto?(noOrietationImage.resizedImageIfNeeded())
+                self.didCapturePhoto?(noOrietationImage.resizedImageIfNeeded(config: self.config))
             }
         }
     }
@@ -204,7 +209,7 @@ public class YPCameraVC: UIViewController, UIGestureRecognizerDelegate, YPPermis
     }
     
     func refreshFlashButton() {
-        let flashImage = photoCapture.currentFlashMode.flashImage()
+        let flashImage = photoCapture.currentFlashMode.flashImage(config: config)
         v.flashButton.setImage(flashImage, for: .normal)
         v.flashButton.isHidden = !photoCapture.hasFlash
     }

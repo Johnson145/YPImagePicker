@@ -11,13 +11,23 @@ import Photos
 
 class LibraryMediaManager {
     
-    weak var v: YPLibraryView?
+    weak var v: YPLibraryView? {
+        didSet {
+            v?.config = config
+        }
+    }
     var collection: PHAssetCollection?
     internal var fetchResult: PHFetchResult<PHAsset>!
     internal var previousPreheatRect: CGRect = .zero
     internal var imageManager: PHCachingImageManager?
     internal var exportTimer: Timer?
     internal var currentExportSessions: [AVAssetExportSession] = []
+
+    let config: YPImagePickerConfiguration
+
+    init(config: YPImagePickerConfiguration){
+        self.config = config
+    }
     
     func initialize() {
         imageManager = PHCachingImageManager()
@@ -116,12 +126,12 @@ class LibraryMediaManager {
                 // 5. Configuring export session
                 
                 let exportSession = AVAssetExportSession(asset: assetComposition,
-                                                         presetName: YPConfig.video.compression)
-                exportSession?.outputFileType = YPConfig.video.fileType
+                                                         presetName: self.config.video.compression)
+                exportSession?.outputFileType = self.config.video.fileType
                 exportSession?.shouldOptimizeForNetworkUse = true
                 exportSession?.videoComposition = videoComposition
                 exportSession?.outputURL = URL(fileURLWithPath: NSTemporaryDirectory())
-                    .appendingUniquePathComponent(pathExtension: YPConfig.video.fileType.fileExtension)
+                    .appendingUniquePathComponent(pathExtension: self.config.video.fileType.fileExtension)
                 
                 // 6. Exporting
                 DispatchQueue.main.async {

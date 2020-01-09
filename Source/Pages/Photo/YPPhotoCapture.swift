@@ -34,14 +34,16 @@ protocol YPPhotoCapture: class {
     var output: AVCaptureOutput { get }
     var deviceInput: AVCaptureDeviceInput? { get set }
     var initVideoZoomFactor: CGFloat { get set }
+
+    var config: YPImagePickerConfiguration { get }
     func configure()
 }
 
-func newPhotoCapture() -> YPPhotoCapture {
+func newPhotoCapture(config: YPImagePickerConfiguration) -> YPPhotoCapture {
     if #available(iOS 10.0, *) {
-        return PostiOS10PhotoCapture()
+        return PostiOS10PhotoCapture(config: config)
     } else {
-        return PreiOS10PhotoCapture()
+        return PreiOS10PhotoCapture(config: config)
     }
 }
 
@@ -52,11 +54,11 @@ enum YPFlashMode {
 }
 
 extension YPFlashMode {
-    func flashImage() -> UIImage {
+    func flashImage(config: YPImagePickerConfiguration) -> UIImage {
         switch self {
-        case .on: return YPConfig.icons.flashOnIcon
-        case .off: return YPConfig.icons.flashOffIcon
-        case .auto: return YPConfig.icons.flashAutoIcon
+        case .on: return config.icons.flashOnIcon
+        case .off: return config.icons.flashOffIcon
+        case .auto: return config.icons.flashAutoIcon
         }
     }
 }

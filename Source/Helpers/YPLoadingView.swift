@@ -13,9 +13,11 @@ class YPLoadingView: UIView {
     
     let spinner = UIActivityIndicatorView(style: .whiteLarge)
     let processingLabel = UILabel()
+    private(set) var config: YPImagePickerConfiguration = .init()
     
-    convenience init() {
+    convenience init(config: YPImagePickerConfiguration) {
         self.init(frame: .zero)
+        self.config = config
     
         // View Hiearachy
         let stack = UIStackView(arrangedSubviews: [spinner, processingLabel])
@@ -35,7 +37,7 @@ class YPLoadingView: UIView {
         spinner.hidesWhenStopped = true
         
         // Content
-        processingLabel.text = YPConfig.wordings.processing
+        processingLabel.text = config.wordings.processing
         
         spinner.startAnimating()
     }

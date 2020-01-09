@@ -13,6 +13,13 @@ final class YPMenuItem: UIView {
     
     var textLabel = UILabel()
     var button = UIButton()
+    var config: YPImagePickerConfiguration! {
+        didSet {
+            if config == nil { return }
+            backgroundColor = config.colors.bottomMenuItemBackgroundColor
+            textLabel.textColor = config.colors.bottomMenuItemUnselectedTextColor
+        }
+    }
     
     required init?(coder aDecoder: NSCoder) {
         super.init(coder: aDecoder)
@@ -24,13 +31,12 @@ final class YPMenuItem: UIView {
         setup()
     }
     
-    convenience init() {
+    convenience init(config: YPImagePickerConfiguration) {
         self.init(frame: .zero)
+        self.config = config
     }
     
     func setup() {
-        backgroundColor = YPImagePickerConfiguration.shared.colors.bottomMenuItemBackgroundColor
-        
         sv(
             textLabel,
             button
@@ -43,17 +49,16 @@ final class YPMenuItem: UIView {
         textLabel.style { l in
             l.textAlignment = .center
             l.font = UIFont.systemFont(ofSize: 17, weight: .semibold)
-            l.textColor = YPImagePickerConfiguration.shared.colors.bottomMenuItemUnselectedTextColor
             l.adjustsFontSizeToFitWidth = true
             l.numberOfLines = 2
         }
     }
 
     func select() {
-        textLabel.textColor = YPImagePickerConfiguration.shared.colors.bottomMenuItemSelectedTextColor
+        textLabel.textColor = config.colors.bottomMenuItemSelectedTextColor
     }
     
     func deselect() {
-        textLabel.textColor = YPImagePickerConfiguration.shared.colors.bottomMenuItemUnselectedTextColor
+        textLabel.textColor = config.colors.bottomMenuItemUnselectedTextColor
     }
 }

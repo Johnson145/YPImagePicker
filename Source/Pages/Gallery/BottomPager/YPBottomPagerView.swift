@@ -13,9 +13,11 @@ final class YPBottomPagerView: UIView {
     
     var header = YPPagerMenu()
     var scrollView = UIScrollView()
+    private(set) var config: YPImagePickerConfiguration = .init()
     
-    convenience init() {
+    convenience init(config: YPImagePickerConfiguration) {
         self.init(frame: .zero)
+        self.config = config
         backgroundColor = .offWhiteOrBlack
         
         sv(
@@ -35,7 +37,7 @@ final class YPBottomPagerView: UIView {
         } else {
             header.bottom(0)
         }
-        header.heightConstraint?.constant = YPConfig.hidesBottomBar ? 0 : 44
+        header.heightConstraint?.constant = config.hidesBottomBar ? 0 : 44
         
         clipsToBounds = false
         setupScrollView()

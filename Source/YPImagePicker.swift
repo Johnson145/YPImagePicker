@@ -14,89 +14,87 @@ public protocol YPImagePickerDelegate: AnyObject {
     func noPhotos()
 }
 
-open class YPImagePicker: UINavigationController {
-      
-    open override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+public protocol YPImagePickerSetupDelegate: YPImagePickerDelegate {
+    func presentNewViewController(_ controller: UIViewController)
+    func userDidSelectItem(_ items: [YPMediaItem])
+}
+
+open class YPImagePickerSetup {
+    open var supportedInterfaceOrientations: UIInterfaceOrientationMask {
         return .portrait
     }
-    
+
+    public weak var delegate: YPImagePickerSetupDelegate?
+    public var rootNavigation: RootNavigation? {
+        get {
+            return self.picker.rootNavigation
+        }
+        set {
+            self.picker.rootNavigation = newValue
+        }
+    }
+
     private var _didFinishPicking: (([YPMediaItem], Bool) -> Void)?
     public func didFinishPicking(completion: @escaping (_ items: [YPMediaItem], _ cancelled: Bool) -> Void) {
         _didFinishPicking = completion
     }
-    public weak var imagePickerDelegate: YPImagePickerDelegate?
-    
-    open override var preferredStatusBarStyle: UIStatusBarStyle {
-        return YPImagePickerConfiguration.shared.preferredStatusBarStyle
+
+    let config: YPImagePickerConfiguration
+
+    open var preferredStatusBarStyle: UIStatusBarStyle {
+        return config.preferredStatusBarStyle
     }
-    
-    // This nifty little trick enables us to call the single version of the callbacks.
-    // This keeps the backwards compatibility keeps the api as simple as possible.
-    // Multiple selection becomes available as an opt-in.
+
     private func didSelect(items: [YPMediaItem]) {
         _didFinishPicking?(items, false)
     }
-    
+
     let loadingView = YPLoadingView()
     public var picker: YPPickerVC!
-    
-    /// Get a YPImagePicker instance with the default configuration.
-    public convenience init() {
-        self.init(configuration: YPImagePickerConfiguration.shared)
-    }
-    
-    /// Get a YPImagePicker with the specified configuration.
-    public required init(configuration: YPImagePickerConfiguration) {
-        YPImagePickerConfiguration.shared = configuration
-        picker = YPPickerVC(defaultMode: nil)
-        super.init(nibName: nil, bundle: nil)
-        modalPresentationStyle = .fullScreen // Force .fullScreen as iOS 13 now shows modals as cards by default.
+
+    public init(defaultMode: YPPickerScreen?, configuration: YPImagePickerConfiguration) {
+        config = configuration
+        picker = YPPickerVC(defaultMode: defaultMode, config: config)
         picker.imagePickerDelegate = self
     }
-    
-    public init(defaultMode: YPPickerScreen, configuration: YPImagePickerConfiguration) {
-        YPImagePickerConfiguration.shared = configuration
-        picker = YPPickerVC(defaultMode: defaultMode)
-        super.init(nibName: nil, bundle: nil)
-        modalPresentationStyle = .fullScreen // Force .fullScreen as iOS 13 now shows modals as cards by default.
-        picker.imagePickerDelegate = self
+
+    open func emitDone() {
+        self.picker.done()
     }
-    
-    public required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
+
+    open func setupLoadingView(in view: UIView){
+        view.sv(
+                loadingView
+        )
+        loadingView.fillContainer()
+        loadingView.alpha = 0
     }
-    
-    override open func viewDidLoad() {
-        super.viewDidLoad()
+
+    open func setupPickerVC() -> YPPickerVC {
         picker.didClose = { [weak self] in
             self?._didFinishPicking?([], true)
         }
-        viewControllers = [picker]
-        setupLoadingView()
-        navigationBar.isTranslucent = false
 
         picker.didSelectItems = { [weak self] items in
-            // Use Fade transition instead of default push animation
-            let transition = CATransition()
-            transition.duration = 0.3
-            transition.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut)
-            transition.type = CATransitionType.fade
-            self?.view.layer.add(transition, forKey: nil)
-            
+            self?.delegate?.userDidSelectItem(items)
             // Multiple items flow
             if items.count > 1 {
-                if YPConfig.library.skipSelectionsGallery {
+                if self?.config.library.skipSelectionsGallery == true {
                     self?.didSelect(items: items)
                     return
                 } else {
-                    let selectionsGalleryVC = YPSelectionsGalleryVC(items: items) { _, items in
+                    guard let this = self else { return }
+                    let selectionsGalleryVC = YPSelectionsGalleryVC(items: items, config: this.config) { _, items in
                         self?.didSelect(items: items)
                     }
-                    self?.pushViewController(selectionsGalleryVC, animated: true)
+                    if this.rootNavigation !== this {
+                        selectionsGalleryVC.rootNavigation = this.rootNavigation
+                    }
+                    self?.delegate?.presentNewViewController(selectionsGalleryVC)
                     return
                 }
             }
-            
+
             // One item flow
             let item = items.first!
             switch item {
@@ -104,55 +102,126 @@ open class YPImagePicker: UINavigationController {
                 let completion = { (photo: YPMediaPhoto) in
                     let mediaItem = YPMediaItem.photo(p: photo)
                     // Save new image or existing but modified, to the photo album.
-                    if YPConfig.shouldSaveNewPicturesToAlbum {
+                    if self?.config.shouldSaveNewPicturesToAlbum == true {
                         let isModified = photo.modifiedImage != nil
                         if photo.fromCamera || (!photo.fromCamera && isModified) {
-                            YPPhotoSaver.trySaveImage(photo.image, inAlbumNamed: YPConfig.albumName)
+                            YPPhotoSaver.trySaveImage(photo.image, inAlbumNamed: self!.config.albumName)
                         }
                     }
                     self?.didSelect(items: [mediaItem])
                 }
-                
+
                 func showCropVC(photo: YPMediaPhoto, completion: @escaping (_ aphoto: YPMediaPhoto) -> Void) {
-                    if case let YPCropType.rectangle(ratio) = YPConfig.showsCrop {
-                        let cropVC = YPCropVC(image: photo.image, ratio: ratio)
+                    guard let this = self else { return }
+                    if case let YPCropType.rectangle(ratio) = this.config.showsCrop {
+                        let cropVC = YPCropVC(image: photo.image, ratio: ratio, config: this.config)
                         cropVC.didFinishCropping = { croppedImage in
                             photo.modifiedImage = croppedImage
                             completion(photo)
                         }
-                        self?.pushViewController(cropVC, animated: true)
+                        self?.delegate?.presentNewViewController(cropVC)
                     } else {
                         completion(photo)
                     }
                 }
-                
-                if YPConfig.showsPhotoFilters {
+
+                if self?.config.showsPhotoFilters == true {
                     let filterVC = YPPhotoFiltersVC(inputPhoto: photo,
-                                                    isFromSelectionVC: false)
+                            isFromSelectionVC: false,
+                            config: self!.config)
+                    if self!.rootNavigation !== self! {
+                        filterVC.rootNavigation = self!.rootNavigation
+                    }
                     // Show filters and then crop
                     filterVC.didSave = { outputMedia in
                         if case let YPMediaItem.photo(outputPhoto) = outputMedia {
                             showCropVC(photo: outputPhoto, completion: completion)
                         }
                     }
-                    self?.pushViewController(filterVC, animated: false)
+                    self?.delegate?.presentNewViewController(filterVC)
                 } else {
                     showCropVC(photo: photo, completion: completion)
                 }
             case .video(let video):
-                if YPConfig.showsVideoTrimmer {
+                if self?.config.showsVideoTrimmer == true {
                     let videoFiltersVC = YPVideoFiltersVC.initWith(video: video,
-                                                                   isFromSelectionVC: false)
+                            isFromSelectionVC: false,
+                            config: self!.config)
+                    if self!.rootNavigation !== self {
+                        videoFiltersVC.rootNavigation = self!.rootNavigation
+                    }
                     videoFiltersVC.didSave = { [weak self] outputMedia in
                         self?.didSelect(items: [outputMedia])
                     }
-                    self?.pushViewController(videoFiltersVC, animated: true)
+                    self?.delegate?.presentNewViewController(videoFiltersVC)
                 } else {
                     self?.didSelect(items: [YPMediaItem.video(v: video)])
                 }
             }
         }
-        
+
+        return picker
+    }
+}
+
+extension YPImagePickerSetup: ImagePickerDelegate {
+    func noPhotos() {
+        self.delegate?.noPhotos()
+    }
+}
+
+open class YPImagePicker: UINavigationController {
+
+    var setuper: YPImagePickerSetup
+
+    open override var supportedInterfaceOrientations: UIInterfaceOrientationMask {
+        return self.setuper.supportedInterfaceOrientations
+    }
+
+    public func didFinishPicking(completion: @escaping (_ items: [YPMediaItem], _ cancelled: Bool) -> Void) {
+        self.setuper.didFinishPicking(completion: completion)
+    }
+    public weak var imagePickerDelegate: YPImagePickerDelegate?
+
+    open override var preferredStatusBarStyle: UIStatusBarStyle {
+        return setuper.preferredStatusBarStyle
+    }
+
+    /// Get a YPImagePicker instance with the default configuration.
+    public convenience init() {
+        self.init(configuration: YPImagePickerConfiguration())
+    }
+    
+    /// Get a YPImagePicker with the specified configuration.
+    public required init(configuration: YPImagePickerConfiguration) {
+        self.setuper = YPImagePickerSetup(defaultMode: nil, configuration: configuration)
+        super.init(nibName: nil, bundle: nil)
+        modalPresentationStyle = .fullScreen // Force .fullScreen as iOS 13 now shows modals as cards by default.
+        self.setuper.delegate = self
+    }
+    
+    public init(defaultMode: YPPickerScreen, configuration: YPImagePickerConfiguration) {
+        self.setuper = YPImagePickerSetup(defaultMode: nil, configuration: configuration)
+        super.init(nibName: nil, bundle: nil)
+        modalPresentationStyle = .fullScreen // Force .fullScreen as iOS 13 now shows modals as cards by default.
+        self.setuper.delegate = self
+    }
+    
+    public required init?(coder aDecoder: NSCoder) {
+        fatalError("init(coder:) has not been implemented")
+    }
+
+    /// Emits the done event where the user selection is final and all callbacks get called
+    public func emitDone() {
+        self.setuper.emitDone()
+    }
+    
+    override open func viewDidLoad() {
+        super.viewDidLoad()
+        viewControllers = [setuper.picker]
+        self.setuper.setupLoadingView(in: self.view)
+        navigationBar.isTranslucent = false
+
         // If user has not customized the Nav Bar tintColor, then use black.
         if UINavigationBar.appearance().tintColor == nil {
             UINavigationBar.appearance().tintColor = .ypLabel
@@ -163,17 +232,23 @@ open class YPImagePicker: UINavigationController {
         print("Picker deinited 👍")
     }
     
-    private func setupLoadingView() {
-        view.sv(
-            loadingView
-        )
-        loadingView.fillContainer()
-        loadingView.alpha = 0
-    }
 }
 
-extension YPImagePicker: ImagePickerDelegate {
-    func noPhotos() {
+extension YPImagePicker: YPImagePickerSetupDelegate {
+    public func userDidSelectItem(_ items: [YPMediaItem]) {
+        // Use Fade transition instead of default push animation
+        let transition = CATransition()
+        transition.duration = 0.3
+        transition.timingFunction = CAMediaTimingFunction(name: CAMediaTimingFunctionName.easeInEaseOut)
+        transition.type = CATransitionType.fade
+        self.view.layer.add(transition, forKey: nil)
+    }
+
+    public func presentNewViewController(_ controller: UIViewController) {
+        self.pushViewController(controller, animated: true)
+    }
+
+    public func noPhotos() {
         self.imagePickerDelegate?.noPhotos()
     }
 }

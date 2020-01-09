@@ -13,17 +13,16 @@ import AVFoundation
  This class contains all support and helper methods to process the videos
  */
 class YPVideoProcessor {
-
     /// Creates an output path and removes the file in temp folder if existing
     ///
     /// - Parameters:
     ///   - temporaryFolder: Save to the temporary folder or somewhere else like documents folder
     ///   - suffix: the file name wothout extension
-    static func makeVideoPathURL(temporaryFolder: Bool, fileName: String) -> URL {
+    static func makeVideoPathURL(temporaryFolder: Bool, fileName: String, config: YPImagePickerConfiguration) -> URL {
         var outputURL: URL
         
         if temporaryFolder {
-            let outputPath = "\(NSTemporaryDirectory())\(fileName).\(YPConfig.video.fileType.fileExtension)"
+            let outputPath = "\(NSTemporaryDirectory())\(fileName).\(config.video.fileType.fileExtension)"
             outputURL = URL(fileURLWithPath: outputPath)
         } else {
             guard let documentsURL = FileManager
@@ -33,7 +32,7 @@ class YPVideoProcessor {
                         print("YPVideoProcessor -> Can't get the documents directory URL")
                 return URL(fileURLWithPath: "Error")
             }
-            outputURL = documentsURL.appendingPathComponent("\(fileName).\(YPConfig.video.fileType.fileExtension)")
+            outputURL = documentsURL.appendingPathComponent("\(fileName).\(config.video.fileType.fileExtension)")
         }
         
         let fileManager = FileManager.default
@@ -51,10 +50,10 @@ class YPVideoProcessor {
     /*
      Crops the video to square by video height from the top of the video.
      */
-    static func cropToSquare(filePath: URL, completion: @escaping (_ outputURL : URL?) -> ()) {
+    static func cropToSquare(filePath: URL, config: YPImagePickerConfiguration, completion: @escaping (_ outputURL : URL?) -> ()) {
         
         // output file
-        let outputPath = makeVideoPathURL(temporaryFolder: true, fileName: "squaredVideoFromCamera")
+        let outputPath = makeVideoPathURL(temporaryFolder: true, fileName: "squaredVideoFromCamera", config: config)
         
         // input file
         let asset = AVAsset.init(url: filePath)
@@ -71,7 +70,7 @@ class YPVideoProcessor {
         
         // make it square
         let videoComposition = AVMutableVideoComposition()
-        if YPConfig.onlySquareImagesFromCamera {
+        if config.onlySquareImagesFromCamera {
             videoComposition.renderSize = CGSize(width: CGFloat(clipVideoTrack.naturalSize.height), height: CGFloat(clipVideoTrack.naturalSize.height))
         } else {
             videoComposition.renderSize = CGSize(width: CGFloat(clipVideoTrack.naturalSize.height), height: CGFloat(clipVideoTrack.naturalSize.width))
@@ -90,11 +89,11 @@ class YPVideoProcessor {
         videoComposition.instructions = [instruction]
         
         // exporter
-        let exporter = AVAssetExportSession.init(asset: asset, presetName: YPConfig.video.compression)
+        let exporter = AVAssetExportSession.init(asset: asset, presetName: config.video.compression)
         exporter?.videoComposition = videoComposition
         exporter?.outputURL = outputPath
         exporter?.shouldOptimizeForNetworkUse = true
-        exporter?.outputFileType = YPConfig.video.fileType
+        exporter?.outputFileType = config.video.fileType
 
         exporter?.exportAsynchronously {
             if exporter?.status == .completed {

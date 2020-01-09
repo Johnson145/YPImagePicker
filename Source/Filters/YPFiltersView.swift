@@ -14,14 +14,16 @@ class YPFiltersView: UIView {
     var collectionView: UICollectionView!
     var filtersLoader: UIActivityIndicatorView!
     fileprivate let collectionViewContainer: UIView = UIView()
+    private(set) var config: YPImagePickerConfiguration = .init()
     
-    convenience init() {
+    convenience init(config: YPImagePickerConfiguration) {
         self.init(frame: CGRect.zero)
+        self.config = config
         collectionView = UICollectionView(frame: CGRect.zero, collectionViewLayout: layout())
         filtersLoader = UIActivityIndicatorView(style: .gray)
         filtersLoader.hidesWhenStopped = true
         filtersLoader.startAnimating()
-        filtersLoader.color = YPConfig.colors.tintColor
+        filtersLoader.color = config.colors.tintColor
         
         sv(
             imageView,

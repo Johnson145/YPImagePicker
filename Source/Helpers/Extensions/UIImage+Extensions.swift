@@ -81,8 +81,8 @@ internal extension UIImage {
     }
     
     // Reduce image size further if needed targetImageSize is capped.
-    func resizedImageIfNeeded() -> UIImage {
-        if case let YPImageSize.cappedTo(size: capped) = YPConfig.targetImageSize {
+    func resizedImageIfNeeded(config: YPImagePickerConfiguration) -> UIImage {
+        if case let YPImageSize.cappedTo(size: capped) = config.targetImageSize {
             let size = cappedSize(for: self.size, cappedAt: capped)
             if let resizedImage = self.resized(to: size) {
                 return resizedImage
