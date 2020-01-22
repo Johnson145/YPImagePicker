@@ -129,8 +129,10 @@ public class YPCameraVC: UIViewController, UIGestureRecognizerDelegate, YPPermis
     
     @objc
     func shotButtonTapped() {
-        doAfterPermissionCheck { [weak self] in
-            self?.shoot()
+        if isInited {
+            doAfterPermissionCheck { [weak self] in
+                self?.shoot()
+            }
         }
     }
     
