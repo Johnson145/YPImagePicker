@@ -67,6 +67,7 @@ public class YPCameraVC: UIViewController, UIGestureRecognizerDelegate, YPPermis
                 DispatchQueue.main.async {
                     self?.isInited = true
                     self?.refreshFlashButton()
+                    self?.v.shotButton.isEnabled = true
                 }
             })
         }
@@ -123,6 +124,7 @@ public class YPCameraVC: UIViewController, UIGestureRecognizerDelegate, YPPermis
         doAfterPermissionCheck { [weak self] in
             self?.photoCapture.flipCamera {
                 self?.refreshFlashButton()
+                self?.v.shotButton.isEnabled = true
             }
         }
     }
