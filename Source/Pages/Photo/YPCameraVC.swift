@@ -145,12 +145,13 @@ public class YPCameraVC: UIViewController, UIGestureRecognizerDelegate, YPPermis
     }
     
     func shoot() {
+        // Prevent shot button to be disabled when the camera has not finished loading
+        if !photoCapture.isPreviewSetup {
+            return
+        }
         // Prevent from tapping multiple times in a row
         // causing a crash
         v.shotButton.isEnabled = false
-        
-        print("is preview setup = \(photoCapture.isPreviewSetup)")
-        print("is capture session setup = \(photoCapture.isCaptureSessionSetup)")
         
         photoCapture.shoot { imageData in
             
