@@ -43,6 +43,7 @@ public class YPCameraVC: UIViewController, UIGestureRecognizerDelegate, YPPermis
     override public func viewDidLoad() {
         super.viewDidLoad()
         v.flashButton.isHidden = true
+        v.shotButton.isHidden = true
         v.flashButton.addTarget(self, action: #selector(flashButtonTapped), for: .touchUpInside)
         v.shotButton.addTarget(self, action: #selector(shotButtonTapped), for: .touchUpInside)
         v.flipButton.addTarget(self, action: #selector(flipButtonTapped), for: .touchUpInside)
@@ -67,10 +68,15 @@ public class YPCameraVC: UIViewController, UIGestureRecognizerDelegate, YPPermis
                 DispatchQueue.main.async {
                     self?.isInited = true
                     self?.refreshFlashButton()
-                    self?.v.shotButton.isEnabled = true
+                    self?.refreshShotButton()
                 }
             })
         }
+    }
+    
+    private func refreshShotButton() {
+        v.shotButton.isHidden = false
+        v.shotButton.isEnabled = true
     }
 
     @objc
@@ -124,7 +130,7 @@ public class YPCameraVC: UIViewController, UIGestureRecognizerDelegate, YPPermis
         doAfterPermissionCheck { [weak self] in
             self?.photoCapture.flipCamera {
                 self?.refreshFlashButton()
-                self?.v.shotButton.isEnabled = true
+                self?.refreshShotButton()
             }
         }
     }
@@ -142,6 +148,9 @@ public class YPCameraVC: UIViewController, UIGestureRecognizerDelegate, YPPermis
         // Prevent from tapping multiple times in a row
         // causing a crash
         v.shotButton.isEnabled = false
+        
+        print("is preview setup = \(photoCapture.isPreviewSetup)")
+        print("is capture session setup = \(photoCapture.isCaptureSessionSetup)")
         
         photoCapture.shoot { imageData in
             
