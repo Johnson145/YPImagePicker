@@ -92,7 +92,7 @@ open class YPPhotoFiltersVC: UIViewController, IsMediaFilterVC, UIGestureRecogni
         if isFromSelectionVC {
             rootNavigation?.navigationItem.leftBarButtonItem = UIBarButtonItem(title: config.wordings.cancel,
             style: .plain,
-            target: self,
+            target: config.defaultCancelTarget != nil ? config.defaultCancelTarget : self,
             action: config.defaultCancelSelector != nil ? config.defaultCancelSelector : #selector(cancel))
             rootNavigation?.navigationItem.leftBarButtonItem?.tintColor = config.colors.tintColor
         }
