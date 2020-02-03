@@ -355,7 +355,7 @@ open class YPPickerVC: YPBottomPager, YPBottomPagerDelegate {
             rootNavigation?.navigationItem.leftBarButtonItem = UIBarButtonItem(title: config.wordings.cancel,
                     style: .plain,
                     target: self,
-                    action: #selector(close))
+                    action: config.defaultCancelSelector != nil ? config.defaultCancelSelector : #selector(close))
             rootNavigation?.navigationItem.leftBarButtonItem?.tintColor = config.colors.tintColor
         }
 

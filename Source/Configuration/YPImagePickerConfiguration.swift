@@ -16,6 +16,9 @@ public struct YPImagePickerConfiguration {
 
     public init() {}
     
+    /// can be used to override the navigationbar cancel selector
+    public var defaultCancelSelector: Selector?
+    
     /// Scroll to change modes, defaults to true
     public var isScrollToChangeModesEnabled = true
     

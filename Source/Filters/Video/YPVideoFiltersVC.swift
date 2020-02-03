@@ -94,9 +94,9 @@ public class YPVideoFiltersVC: UIViewController, IsMediaFilterVC {
         title = config.wordings.trim
         if isFromSelectionVC {
             rootNavigation?.navigationItem.leftBarButtonItem = UIBarButtonItem(title: config.wordings.cancel,
-                                                               style: .plain,
-                                                               target: self,
-                                                               action: #selector(cancel))
+            style: .plain,
+            target: self,
+            action: config.defaultCancelSelector != nil ? config.defaultCancelSelector : #selector(cancel))
             rootNavigation?.navigationItem.leftBarButtonItem?.tintColor = config.colors.tintColor
         }
         setupRightBarButtonItem()

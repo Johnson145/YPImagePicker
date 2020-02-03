@@ -42,28 +42,15 @@ class YPAlbumVC: UIViewController {
         super.viewDidLoad()
         if self.config.showCancelButton {
             rootNavigation?.navigationItem.leftBarButtonItem = UIBarButtonItem(title: config.wordings.cancel,
-                    style: .plain,
-                    target: self,
-                    action: #selector(close))
+            style: .plain,
+            target: self,
+            action: config.defaultCancelSelector != nil ? config.defaultCancelSelector : #selector(close))
             rootNavigation?.navigationItem.leftBarButtonItem?.tintColor = config.colors.tintColor
         } else {
             rootNavigation?.navigationItem.leftBarButtonItem = nil
         }
         setUpTableView()
         fetchAlbumsInBackground()
-    }
-    
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        if self.config.showCancelButton {
-            rootNavigation?.navigationItem.leftBarButtonItem = UIBarButtonItem(title: config.wordings.cancel,
-                    style: .plain,
-                    target: self,
-                    action: #selector(close))
-            rootNavigation?.navigationItem.leftBarButtonItem?.tintColor = config.colors.tintColor
-        } else {
-            rootNavigation?.navigationItem.leftBarButtonItem = nil
-        }
     }
     
     func fetchAlbumsInBackground() {
