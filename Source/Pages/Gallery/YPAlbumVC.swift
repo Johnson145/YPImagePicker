@@ -53,6 +53,19 @@ class YPAlbumVC: UIViewController {
         fetchAlbumsInBackground()
     }
     
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        if self.config.showCancelButton {
+            rootNavigation?.navigationItem.leftBarButtonItem = UIBarButtonItem(title: config.wordings.cancel,
+                    style: .plain,
+                    target: self,
+                    action: #selector(close))
+            rootNavigation?.navigationItem.leftBarButtonItem?.tintColor = config.colors.tintColor
+        } else {
+            rootNavigation?.navigationItem.leftBarButtonItem = nil
+        }
+    }
+    
     func fetchAlbumsInBackground() {
         v.spinner.startAnimating()
         DispatchQueue.global(qos: .userInitiated).async { [weak self] in
