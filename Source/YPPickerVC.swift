@@ -307,9 +307,11 @@ open class YPPickerVC: YPBottomPager, YPBottomPagerDelegate {
             label.font = navBarTitleFont
         }
         // Use custom textColor if set by user.
-        if let navBarTitleColor = UINavigationBar.appearance().titleTextAttributes?[.foregroundColor] as? UIColor {
-            label.textColor = navBarTitleColor
-        }
+        // Update: do not use the global color configuration to prevent side effects, but use the same color as used for the buttons
+        //if let navBarTitleColor = UINavigationBar.appearance().titleTextAttributes?[.foregroundColor] as? UIColor {
+        //    label.textColor = navBarTitleColor
+        //}
+        label.textColor = config.colors.tintColor
         
         if config.library.options != nil {
             titleView.sv(
@@ -323,11 +325,14 @@ open class YPPickerVC: YPBottomPager, YPBottomPagerDelegate {
             arrow.image = arrow.image?.withRenderingMode(.alwaysTemplate)
             arrow.tintColor = .ypLabel
             
-            let attributes = UINavigationBar.appearance().titleTextAttributes
-            if let attributes = attributes, let foregroundColor = attributes[.foregroundColor] as? UIColor {
-                arrow.image = arrow.image?.withRenderingMode(.alwaysTemplate)
-                arrow.tintColor = foregroundColor
-            }
+            // Update: do not use the global color configuration to prevent side effects, but use the same color as used for the buttons
+            //let attributes = UINavigationBar.appearance().titleTextAttributes
+            //if let attributes = attributes, let foregroundColor = attributes[.foregroundColor] as? UIColor {
+            //    arrow.image = arrow.image?.withRenderingMode(.alwaysTemplate)
+            //    arrow.tintColor = foregroundColor
+            //}
+            arrow.image = arrow.image?.withRenderingMode(.alwaysTemplate)
+            arrow.tintColor = config.colors.tintColor
             
             let button = UIButton()
             button.addTarget(self, action: #selector(navBarTapped), for: .touchUpInside)
