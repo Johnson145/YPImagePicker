@@ -122,7 +122,7 @@ public struct YPImagePickerConfiguration {
     public var showCancelButton: Bool = true
 
     /// Migration
-    
+    /* Temporarily uncommented the following code as a hotfix for XCode 15 compatibility
     @available(iOS, obsoleted: 3.0.0, renamed: "video.compression")
     public var videoCompression: String = AVAssetExportPresetHighestQuality
     
@@ -161,6 +161,7 @@ public struct YPImagePickerConfiguration {
     
     @available(iOS, obsoleted: 3.0.0, renamed: "library.maxNumberOfItems")
     public var maxNumberOfItems = 1
+     */
 }
 
 /// Encapsulates library specific settings.
